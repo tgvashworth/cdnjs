@@ -63,7 +63,9 @@ var cdnjs = {
   search: function (term, cb) {
     this.packages(function (err, packages) {
       if( err ) return cb(err);
-      cb(null, search_by_name(term, packages).map(function (pkg) { return pkg.name; }));
+      var results = search_by_name(term, packages).map(function (pkg) { return pkg.name; });
+      if( results.length === 0 ) err = new Error("No matching packages found.");
+      cb(err, results);
     });
   },
   url: function (term, cb) {
@@ -89,7 +91,8 @@ if( process.argv.length > 2 ) {
     if( ! cdnjs[method] ) return console.log("Unknown method.") && process.exit(1);
     var result = cdnjs[method](term, function (err, result) {
       if( err ) return console.log(err) && process.exit(1);
-      if( ! result ) return console.log("No results found.") && process.exit(1);
+      if( (! result) ) return console.log("Nothing found.") && process.exit(1);
+
       if( util.isArray(result) ) {
         console.log( result.join('\n') );
       } else {
