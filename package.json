@@ -1,0 +1,23 @@
+{
+  "name": "cdnjs",
+  "version": "0.0.1",
+  "description": "Search and URL retrieval from cdnjs",
+  "preferGlobal": "true",
+  "bin": {
+    "cdnjs": "cdn.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:phuu/cdnjs.git"
+  },
+  "keywords": [
+    "cdnjs",
+    "search",
+    "url",
+    "api",
+    "toast"
+  ],
+  "author": "Tom Ashworth <tom@phuu.net>",
+  "license": "MIT",
+  "gitHead": "ec51897347f590dc078c483ad47b3f68d546394b"
+}
