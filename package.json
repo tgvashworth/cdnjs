@@ -6,6 +6,9 @@
   "bin": {
     "cdnjs": "cdn.js"
   },
+  "scripts": {
+    "test": "mocha"
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:phuu/cdnjs.git"
