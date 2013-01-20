@@ -19,5 +19,9 @@
   ],
   "author": "Tom Ashworth <tom@phuu.net>",
   "license": "MIT",
-  "gitHead": "ec51897347f590dc078c483ad47b3f68d546394b"
+  "gitHead": "ec51897347f590dc078c483ad47b3f68d546394b",
+  "devDependencies": {
+    "should": "~1.2.1",
+    "mocha": "~1.8.1"
+  }
 }
