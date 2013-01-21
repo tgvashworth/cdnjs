@@ -23,7 +23,9 @@ To get a url for a library:
 
 `cdnjs url jquery`
 
-`http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.0/jquery.min.js`
+```
+http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.0/jquery.min.js
+```
 
 ## License
 
