@@ -99,11 +99,14 @@ if( process.argv.length > 2 ) {
   (function () {
     var method = process.argv[2],
         term = process.argv[3];
-    if( ! (method && term) ) return console.log("Missing method or search term.") && process.exit(1);
-    if( ! cdnjs[method] ) return console.log("Unknown method.") && process.exit(1);
+    if( ! cdnjs[method] ) {
+      console.log("Unknown method, assuming search.".red);
+      if ( ! term ) { term = method; }
+      method = 'search';
+    }
     var result = cdnjs[method](term, function (err, result) {
-      if( err ) return console.log(err) && process.exit(1);
-      if( (! result) ) return console.log("Nothing found.") && process.exit(1);
+      if( err ) return console.log((''+err).red) && process.exit(1);
+      if( (! result) ) return console.log("Error: Nothing found.".red) && process.exit(1);
 
       if( util.isArray(result) ) {
         console.log( result.join('\n') );
