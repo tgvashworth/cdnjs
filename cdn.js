@@ -17,6 +17,13 @@ var search_by = function (key, term, array) {
   return matches;
 };
 
+var pad = function (str, len) {
+  while( str.length < len ) {
+    str += ' ';
+  }
+  return str;
+};
+
 var search_by_name = search_by.bind(null, 'name');
 var search_by_filename = search_by.bind(null, 'filename');
 var search_by_description = search_by.bind(null, 'description');
@@ -63,7 +70,9 @@ var cdnjs = {
   search: function (term, cb) {
     this.packages(function (err, packages) {
       if( err ) return cb(err);
-      var results = search_by_name(term, packages).map(function (pkg) { return pkg.name; });
+      var results = search_by_name(term, packages).map(function (pkg) {
+        return pad(pkg.name, 30) + ': ' + build_url(pkg);
+      });
       if( results.length === 0 ) err = new Error("No matching packages found.");
       cb(err, results);
     });
