@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 var https = require('https')
-  , util = require('util');
+  , util = require('util')
+  , colors = require('colors');
 
 // Search methods (return array)
 
@@ -45,7 +46,7 @@ var find_by_description = find_by.bind(null, 'description');
 // Build cdnjs URL
 
 var build_url = function (pkg) {
-  var base = "http://cdnjs.cloudflare.com/ajax/libs/";
+  var base = "//cdnjs.cloudflare.com/ajax/libs/";
   return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
 };
 
@@ -71,7 +72,9 @@ var cdnjs = {
     this.packages(function (err, packages) {
       if( err ) return cb(err);
       var results = search_by_name(term, packages).map(function (pkg) {
-        return pad(pkg.name, 30) + ': ' + build_url(pkg);
+        var name = pad(pkg.name, 30);
+        if (term === pkg.name) name = name.green;
+        return name + (': ' + build_url(pkg)).grey;
       });
       if( results.length === 0 ) err = new Error("No matching packages found.");
       cb(err, results);
@@ -82,9 +85,9 @@ var cdnjs = {
       if( err ) return cb(err);
       var pkg = find_by_name(term, packages);
       if( pkg ) {
-        cb(null, build_url(pkg));
+        cb(null, pad(pkg.name, 30) + (': ' + build_url(pkg)).grey);
       } else {
-        cb(new Error("No package found."));
+        cb(new Error("No such package found."));
       }
     });
   }
