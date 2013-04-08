@@ -33,7 +33,7 @@ describe('search', function () {
   it('should find a known url', function (done) {
     cdnjs.url('require.js', function (err, result) {
       should.not.exist(err);
-      result.should.match(/http\:\/\/cdnjs.cloudflare.com\/ajax\/libs\/require.js\/(.*)\/require.min.js/);
+      result.should.match(/\/\/cdnjs.cloudflare.com\/ajax\/libs\/require.js\/(.*)\/require.min.js/);
       done();
     });
   });
