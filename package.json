@@ -1,6 +1,6 @@
 {
   "name": "cdnjs",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Search and URL retrieval from cdnjs",
   "bin": {
     "cdnjs": "cdn.js"
