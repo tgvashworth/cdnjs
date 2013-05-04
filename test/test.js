@@ -23,7 +23,7 @@ describe('search', function () {
       should.not.exist(err);
       result.should.be.ok;
       result.should.be.an.instanceOf(Array);
-      result.length.should.be.above(5)
+      result.length.should.be.above(5);
       done();
     });
   });
@@ -32,7 +32,8 @@ describe('search', function () {
     this.timeout(5000);
     cdnjs.url('require.js', function (err, result) {
       should.not.exist(err);
-      result.should.match(/\/\/cdnjs.cloudflare.com\/ajax\/libs\/require.js\/(.*)\/require.min.js/);
+      result.name.should.equal('require.js');
+      result.url.should.match(/\/\/cdnjs.cloudflare.com\/ajax\/libs\/require.js\/(.*)\/require.min.js/);
       done();
     });
   });

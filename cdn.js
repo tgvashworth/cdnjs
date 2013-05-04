@@ -72,9 +72,10 @@ var cdnjs = {
     this.packages(function (err, packages) {
       if( err ) return cb(err);
       var results = search_by_name(term, packages).map(function (pkg) {
-        var name = pad(pkg.name, 30);
-        if (term === pkg.name) name = name.green;
-        return name + (': ' + build_url(pkg)).grey;
+        return {
+          name: pkg.name,
+          url: build_url(pkg)
+        };
       });
       if( results.length === 0 ) err = new Error("No matching packages found.");
       cb(err, results);
@@ -85,7 +86,10 @@ var cdnjs = {
       if( err ) return cb(err);
       var pkg = find_by_name(term, packages);
       if( pkg ) {
-        cb(null, pad(pkg.name, 30) + (': ' + build_url(pkg)).grey);
+        cb(null, {
+          name: pkg.name,
+          url: build_url(pkg)
+        });
       } else {
         cb(new Error("No such package found."));
       }
@@ -104,15 +108,17 @@ if( process.argv.length > 2 ) {
       if ( ! term ) { term = method; }
       method = 'search';
     }
-    var result = cdnjs[method](term, function (err, result) {
+    var result = cdnjs[method](term, function (err, results) {
       if( err ) return console.log((''+err).red) && process.exit(1);
-      if( (! result) ) return console.log("Error: Nothing found.".red) && process.exit(1);
+      if( (! results) ) return console.log("Error: Nothing found.".red) && process.exit(1);
 
-      if( util.isArray(result) ) {
-        console.log( result.join('\n') );
-      } else {
-        console.log( result );
-      }
+      if (!util.isArray(results)) results = [results];
+
+      results.forEach(function (result) {
+        var name = pad(result.name, 30);
+        if (term === result.name) name = name.green;
+        console.log( name + (': ' + result.url).grey );
+      });
     });
   }());
 }
