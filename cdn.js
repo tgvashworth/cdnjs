@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-var https = require('https')
-  , util = require('util')
-  , colors = require('colors');
+var https = require('https'),
+    util = require('util'),
+    colors = require('colors');
 
 // Search methods (return array)
 
-var search_by = function (key, term, array) {
+var searchBy = function (key, term, array) {
   var matches = [];
   array.some(function (item) {
-    if( item[key] ) {
-      if( (''+item[key]).toLowerCase().indexOf(term) !== -1 ) {
+    if (item[key]) {
+      if ((''+item[key]).toLowerCase().indexOf(term) !== -1) {
         matches.push(item);
       }
     }
@@ -19,19 +19,19 @@ var search_by = function (key, term, array) {
 };
 
 var pad = function (str, len) {
-  while( str.length < len ) {
+  while( str.length < len) {
     str += ' ';
   }
   return str;
 };
 
-var search_by_name = search_by.bind(null, 'name');
-var search_by_filename = search_by.bind(null, 'filename');
-var search_by_description = search_by.bind(null, 'description');
+var searchByName = searchBy.bind(null, 'name');
+var searchByFilename = searchBy.bind(null, 'filename');
+var searchByDescription = searchBy.bind(null, 'description');
 
 // Find methods (returns object or false)
 
-var find_by = function (key, term, array) {
+var findBy = function (key, term, array) {
   var match;
   array.some(function (item) {
     return item[key] && item[key] === term && (match = item) && true;
@@ -39,20 +39,17 @@ var find_by = function (key, term, array) {
   return match;
 };
 
-var find_by_name = find_by.bind(null, 'name');
-var find_by_filename = find_by.bind(null, 'filename');
-var find_by_description = find_by.bind(null, 'description');
-
-// Build cdnjs URL
-
-var build_url = function (pkg) {
-  var base = "//cdnjs.cloudflare.com/ajax/libs/";
-  return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
-};
+var findByName = findBy.bind(null, 'name');
+var findByFilename = findBy.bind(null, 'filename');
+var findByDescription = findBy.bind(null, 'description');
 
 // The main cdnjs object
 
 var cdnjs = {
+  buildUrl: function (pkg) {
+    var base = "//cdnjs.cloudflare.com/ajax/libs/";
+    return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
+  },
   packages: function (cb) {
     https.get('https://raw.github.com/cdnjs/website/gh-pages/packages.json', function (res) {
       var file = '';
@@ -60,9 +57,9 @@ var cdnjs = {
         file += data;
       });
       res.on('end', function (data) {
-        if( data ) file += data;
+        if (data) file += data;
         var raw = JSON.parse(file);
-        if( raw && raw.packages ) {
+        if (raw && raw.packages) {
           cb(null, raw.packages);
         }
       });
@@ -70,47 +67,47 @@ var cdnjs = {
   },
   search: function (term, cb) {
     this.packages(function (err, packages) {
-      if( err ) return cb(err);
-      var results = search_by_name(term, packages).map(function (pkg) {
+      if (err) return cb(err);
+      var results = searchByName(term, packages).map(function (pkg) {
         return {
           name: pkg.name,
-          url: build_url(pkg)
+          url: this.buildUrl(pkg)
         };
-      });
-      if( results.length === 0 ) err = new Error("No matching packages found.");
+      }.bind(this));
+      if (results.length === 0) err = new Error("No matching packages found.");
       cb(err, results);
-    });
+    }.bind(this));
   },
   url: function (term, cb) {
     this.packages(function (err, packages) {
-      if( err ) return cb(err);
-      var pkg = find_by_name(term, packages);
-      if( pkg ) {
+      if (err) return cb(err);
+      var pkg = findByName(term, packages);
+      if (pkg) {
         cb(null, {
           name: pkg.name,
-          url: build_url(pkg)
+          url: this.buildUrl(pkg)
         });
       } else {
         cb(new Error("No such package found."));
       }
-    });
+    }.bind(this));
   }
 };
 
 // Handle command line usage
 
-if( process.argv.length > 2 ) {
+if (process.argv.length > 2) {
   (function () {
     var method = process.argv[2],
         term = process.argv[3];
-    if( ! cdnjs[method] ) {
+    if (! cdnjs[method]) {
       console.log("Unknown method, assuming search.".red);
-      if ( ! term ) { term = method; }
+      if (! term) { term = method; }
       method = 'search';
     }
     var result = cdnjs[method](term, function (err, results) {
-      if( err ) return console.log((''+err).red) && process.exit(1);
-      if( (! results) ) return console.log("Error: Nothing found.".red) && process.exit(1);
+      if (err) return console.log((''+err).red) && process.exit(1);
+      if ((!results)) return console.log("Error: Nothing found.".red) && process.exit(1);
 
       if (!util.isArray(results)) results = [results];
 
