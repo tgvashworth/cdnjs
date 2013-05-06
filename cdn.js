@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 
-var https = require('https')
-  , util = require('util')
-  , colors = require('colors');
+var request = require('request'),
+    util = require('util'),
+    moment = require('moment'),
+    colors = require('colors');
 
 // Search methods (return array)
 
-var search_by = function (key, term, array) {
+var searchBy = function (key, term, array) {
   var matches = [];
   array.some(function (item) {
-    if( item[key] ) {
-      if( (''+item[key]).toLowerCase().indexOf(term) !== -1 ) {
+    if (item[key]) {
+      if ((''+item[key]).toLowerCase().indexOf(term) !== -1) {
         matches.push(item);
       }
     }
@@ -19,19 +20,19 @@ var search_by = function (key, term, array) {
 };
 
 var pad = function (str, len) {
-  while( str.length < len ) {
+  while( str.length < len) {
     str += ' ';
   }
   return str;
 };
 
-var search_by_name = search_by.bind(null, 'name');
-var search_by_filename = search_by.bind(null, 'filename');
-var search_by_description = search_by.bind(null, 'description');
+var searchByName = searchBy.bind(null, 'name');
+var searchByFilename = searchBy.bind(null, 'filename');
+var searchByDescription = searchBy.bind(null, 'description');
 
 // Find methods (returns object or false)
 
-var find_by = function (key, term, array) {
+var findBy = function (key, term, array) {
   var match;
   array.some(function (item) {
     return item[key] && item[key] === term && (match = item) && true;
@@ -39,78 +40,136 @@ var find_by = function (key, term, array) {
   return match;
 };
 
-var find_by_name = find_by.bind(null, 'name');
-var find_by_filename = find_by.bind(null, 'filename');
-var find_by_description = find_by.bind(null, 'description');
-
-// Build cdnjs URL
-
-var build_url = function (pkg) {
-  var base = "//cdnjs.cloudflare.com/ajax/libs/";
-  return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
-};
+var findByName = findBy.bind(null, 'name');
+var findByFilename = findBy.bind(null, 'filename');
+var findByDescription = findBy.bind(null, 'description');
 
 // The main cdnjs object
 
 var cdnjs = {
-  packages: function (cb) {
-    https.get('https://raw.github.com/cdnjs/website/gh-pages/packages.json', function (res) {
-      var file = '';
-      res.on('data', function (data) {
-        file += data;
-      });
-      res.on('end', function (data) {
-        if( data ) file += data;
-        var raw = JSON.parse(file);
-        if( raw && raw.packages ) {
-          cb(null, raw.packages);
-        }
-      });
-    }).on('error', cb);
+  urls: {
+    packages: 'https://raw.github.com/cdnjs/website/gh-pages/packages.json',
+    base: '//cdnjs.cloudflare.com/ajax/libs/'
   },
-  search: function (term, cb) {
-    this.packages(function (err, packages) {
-      if( err ) return cb(err);
-      var results = search_by_name(term, packages).map(function (pkg) {
-        return {
-          name: pkg.name,
-          url: build_url(pkg)
-        };
-      });
-      if( results.length === 0 ) err = new Error("No matching packages found.");
-      cb(err, results);
-    });
+  /**
+   * Build a cdnjs URL for the given package
+   */
+  buildUrl: function (pkg) {
+    var base = this.urls.base;
+    return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
   },
-  url: function (term, cb) {
-    this.packages(function (err, packages) {
-      if( err ) return cb(err);
-      var pkg = find_by_name(term, packages);
-      if( pkg ) {
-        cb(null, {
+  /**
+   * Build a usable package object with versions
+   */
+  buildPackage: function (pkg) {
+    pkg.assets = pkg.assets || [];
+    return {
+      name: pkg.name,
+      url: this.buildUrl(pkg),
+      versions: pkg.assets.reduce(function (memo, asset) {
+        memo[asset.version] = this.buildUrl({
           name: pkg.name,
-          url: build_url(pkg)
+          version: asset.version,
+          filename: pkg.filename || pkg.name
         });
-      } else {
-        cb(new Error("No such package found."));
+        return memo;
+      }.bind(this), {})
+    };
+  },
+  /**
+   * Extract package name and version from search term
+   */
+  extractTerm: function (term) {
+    var segments = term.split('@');
+    return {
+      name: segments[0],
+      version: segments[1]
+    };
+  },
+  /**
+   * Get the correct version for a given package
+   */
+  getVersion: function (version, pkg) {
+    if (!version) return pkg;
+    if (pkg.url.indexOf(version) !== -1) return pkg;
+    if (!pkg.versions[version]) return pkg;
+    pkg.url = pkg.versions[version];
+    pkg.name = pkg.name + '@' + version;
+    return pkg;
+  },
+  /**
+   * Cached list of packages
+   * Why is this not cached to a file? Becuase the global tool should always go
+   * looking properly, but a module using cdnjs (like an API) will keep it in
+   * memory so it needs recaching after 24 hours.
+   */
+  cache: null,
+  /**
+   * Grab the packages from the local cache, or cdnjs.
+   */
+  packages: function (cb) {
+    // If we've got the packages cached use them, but only if it's not expired.
+    if (this.cache && this.cache.packages) {
+      if (moment().isBefore(this.cache.expires)) {
+        return cb(null, this.cache.packages, true);
       }
-    });
+    }
+    // Grab some JSON from the cdnjs list
+    request
+      .get({ url: this.urls.packages, json:true }, function (err, res, body) {
+        if (err) return cb(err);
+        // The wrong thing came back, gtfo
+        if (!(body && body.packages)) return cb(null, []);
+        // Cache the good stuff, and set and expiry time
+        this.cache = body;
+        this.cache.expires = moment().add('hours', 24);
+        // Send the packages on back
+        return cb(null, body.packages);
+      }.bind(this));
+  },
+  /**
+   * Search the packages list for an identifier. Loosey-goosey.
+   */
+  search: function (term, cb) {
+    term = this.extractTerm(term);
+    this.packages(function (err, packages) {
+      if (err) return cb(err);
+      // Loosely search the names of the packages, then trasform them into a
+      // usable format.
+      var results = searchByName(term.name, packages).map(this.buildPackage.bind(this));
+      if (!results.length) return cb(new Error("No matching packages found."));
+      return cb(null, results);
+    }.bind(this));
+  },
+  /**
+   * Get a URL for an exact identifier match.
+   */
+  url: function (term, cb) {
+    term = this.extractTerm(term);
+    this.packages(function (err, packages) {
+      if (err) return cb(err);
+      var pkg = findByName(term.name, packages);
+      if (!pkg) return cb(new Error("No such package found."));
+      var version = this.getVersion(term.version, this.buildPackage(pkg));
+      return cb(null, version);
+    }.bind(this));
   }
 };
 
 // Handle command line usage
 
-if( process.argv.length > 2 ) {
+if (process.argv.length > 2) {
   (function () {
     var method = process.argv[2],
         term = process.argv[3];
-    if( ! cdnjs[method] ) {
+    if (! cdnjs[method]) {
       console.log("Unknown method, assuming search.".red);
-      if ( ! term ) { term = method; }
+      if (! term) { term = method; }
       method = 'search';
     }
     var result = cdnjs[method](term, function (err, results) {
-      if( err ) return console.log((''+err).red) && process.exit(1);
-      if( (! results) ) return console.log("Error: Nothing found.".red) && process.exit(1);
+      if (err) return console.log((''+err).red) && process.exit(1);
+      if ((!results)) return console.log("Error: Nothing found.".red) && process.exit(1);
 
       if (!util.isArray(results)) results = [results];
 
