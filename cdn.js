@@ -58,7 +58,11 @@ var cdnjs = {
     var base = this.urls.base;
     return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
   },
+  /**
+   * Build a usable package object with versions
+   */
   buildPackage: function (pkg) {
+    pkg.assets = pkg.assets || [];
     return {
       name: pkg.name,
       url: this.buildUrl(pkg),
@@ -71,6 +75,27 @@ var cdnjs = {
         return memo;
       }.bind(this), {})
     };
+  },
+  /**
+   * Extract package name and version from search term
+   */
+  extractTerm: function (term) {
+    var segments = term.split('@');
+    return {
+      name: segments[0],
+      version: segments[1]
+    };
+  },
+  /**
+   * Get the correct version for a given package
+   */
+  getVersion: function (version, pkg) {
+    if (!version) return pkg;
+    if (pkg.url.indexOf(version) !== -1) return pkg;
+    if (!pkg.versions[version]) return pkg;
+    pkg.url = pkg.versions[version];
+    pkg.name = pkg.name + '@' + version;
+    return pkg;
   },
   /**
    * Cached list of packages
@@ -106,11 +131,12 @@ var cdnjs = {
    * Search the packages list for an identifier. Loosey-goosey.
    */
   search: function (term, cb) {
+    term = this.extractTerm(term);
     this.packages(function (err, packages) {
       if (err) return cb(err);
       // Loosely search the names of the packages, then trasform them into a
       // usable format.
-      var results = searchByName(term, packages).map(this.buildPackage.bind(this));
+      var results = searchByName(term.name, packages).map(this.buildPackage.bind(this));
       if (!results.length) return cb(new Error("No matching packages found."));
       return cb(null, results);
     }.bind(this));
@@ -119,11 +145,13 @@ var cdnjs = {
    * Get a URL for an exact identifier match.
    */
   url: function (term, cb) {
+    term = this.extractTerm(term);
     this.packages(function (err, packages) {
       if (err) return cb(err);
-      var pkg = findByName(term, packages);
+      var pkg = findByName(term.name, packages);
       if (!pkg) return cb(new Error("No such package found."));
-      return cb(null, this.buildPackage(pkg));
+      var version = this.getVersion(term.version, this.buildPackage(pkg));
+      return cb(null, version);
     }.bind(this));
   }
 };

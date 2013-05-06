@@ -54,3 +54,28 @@ describe('search', function () {
   });
 
 });
+
+describe('url', function () {
+
+  it('should find a url for a known package', function (done) {
+    this.timeout(5000);
+    cdnjs.url('angular.js', function (err, result) {
+      should.not.exist(err);
+      result.should.be.ok;
+      result.name.should.equal('angular.js');
+      done();
+    });
+  });
+
+  it('should find a versioned url for a known package', function (done) {
+    this.timeout(5000);
+    cdnjs.url('angular.js@1.0.0', function (err, result) {
+      should.not.exist(err);
+      result.should.be.ok;
+      result.name.should.equal('angular.js@1.0.0');
+      result.url.should.include('1.0.0');
+      done();
+    });
+  });
+
+});
