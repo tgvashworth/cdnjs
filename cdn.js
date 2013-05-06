@@ -2,6 +2,7 @@
 
 var request = require('request'),
     util = require('util'),
+    moment = require('moment'),
     colors = require('colors');
 
 // Search methods (return array)
@@ -58,41 +59,65 @@ var cdnjs = {
     return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
   },
   /**
-   * Grab the packages from the local cache, or cdnjs
+   * Cached list of packages
+   * Why is this not cached to a file? Becuase the global tool should always go
+   * looking properly, but a module using cdnjs (like an API) will keep it in
+   * memory so it needs recaching after 24 hours.
+   */
+  cache: null,
+  /**
+   * Grab the packages from the local cache, or cdnjs.
    */
   packages: function (cb) {
+    // If we've got the packages cached use them, but only if it's not expired.
+    if (this.cache && this.cache.packages) {
+      if (moment().isBefore(this.cache.expires)) {
+        return cb(null, this.cache.packages, true);
+      }
+    }
+    // Grab some JSON from the cdnjs list
     request
       .get({ url: this.urls.packages, json:true }, function (err, res, body) {
         if (err) return cb(err);
+        // The wrong thing came back, gtfo
         if (!(body && body.packages)) return cb(null, []);
-        cb(null, body.packages);
-      });
+        // Cache the good stuff, and set and expiry time
+        this.cache = body;
+        this.cache.expires = moment().add('hours', 24);
+        // Send the packages on back
+        return cb(null, body.packages);
+      }.bind(this));
   },
+  /**
+   * Search the packages list for an identifier. Loosey-goosey.
+   */
   search: function (term, cb) {
     this.packages(function (err, packages) {
       if (err) return cb(err);
+      // Loosely search the names of the packages, then trasform them into a
+      // usable format.
       var results = searchByName(term, packages).map(function (pkg) {
         return {
           name: pkg.name,
           url: this.buildUrl(pkg)
         };
       }.bind(this));
-      if (results.length === 0) err = new Error("No matching packages found.");
-      cb(err, results);
+      if (!results.length) return cb(new Error("No matching packages found."));
+      return cb(null, results);
     }.bind(this));
   },
+  /**
+   * Get a URL for an exact identifier match.
+   */
   url: function (term, cb) {
     this.packages(function (err, packages) {
       if (err) return cb(err);
       var pkg = findByName(term, packages);
-      if (pkg) {
-        cb(null, {
-          name: pkg.name,
-          url: this.buildUrl(pkg)
-        });
-      } else {
-        cb(new Error("No such package found."));
-      }
+      if (!pkg) return cb(new Error("No such package found."));
+      return cb(null, {
+        name: pkg.name,
+        url: this.buildUrl(pkg)
+      });
     }.bind(this));
   }
 };

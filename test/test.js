@@ -13,6 +13,21 @@ describe('packages', function () {
     });
   });
 
+  it('should cache packages', function (done) {
+    this.timeout(5000);
+    cdnjs.packages(function (err, packages) {
+      should.not.exist(err);
+      packages.should.be.ok;
+      packages.should.be.an.instanceOf(Array);
+      cdnjs.cache.should.be.ok;
+      cdnjs.cache.packages.should.be.an.instanceOf(Array);
+      cdnjs.packages(function (err, cachePackages, hitCache) {
+        hitCache.should.be.ok;
+        done();
+      });
+    });
+  });
+
 });
 
 describe('search', function () {
