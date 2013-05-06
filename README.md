@@ -1,5 +1,7 @@
 # cdnjs
 
+[![build status](https://secure.travis-ci.org/phuu/cdnjs.png)](http://travis-ci.org/phuu/cdnjs)
+
 A search and URL retrival tool for [cdnjs](//cdnjs.com).
 
 ## Install
