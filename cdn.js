@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var https = require('https'),
+var request = require('request'),
     util = require('util'),
     colors = require('colors');
 
@@ -46,24 +46,27 @@ var findByDescription = findBy.bind(null, 'description');
 // The main cdnjs object
 
 var cdnjs = {
+  urls: {
+    packages: 'https://raw.github.com/cdnjs/website/gh-pages/packages.json',
+    base: '//cdnjs.cloudflare.com/ajax/libs/'
+  },
+  /**
+   * Build a cdnjs URL for the given package
+   */
   buildUrl: function (pkg) {
-    var base = "//cdnjs.cloudflare.com/ajax/libs/";
+    var base = this.urls.base;
     return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
   },
+  /**
+   * Grab the packages from the local cache, or cdnjs
+   */
   packages: function (cb) {
-    https.get('https://raw.github.com/cdnjs/website/gh-pages/packages.json', function (res) {
-      var file = '';
-      res.on('data', function (data) {
-        file += data;
+    request
+      .get({ url: this.urls.packages, json:true }, function (err, res, body) {
+        if (err) return cb(err);
+        if (!(body && body.packages)) return cb(null, []);
+        cb(null, body.packages);
       });
-      res.on('end', function (data) {
-        if (data) file += data;
-        var raw = JSON.parse(file);
-        if (raw && raw.packages) {
-          cb(null, raw.packages);
-        }
-      });
-    }).on('error', cb);
   },
   search: function (term, cb) {
     this.packages(function (err, packages) {
