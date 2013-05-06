@@ -58,6 +58,20 @@ var cdnjs = {
     var base = this.urls.base;
     return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
   },
+  buildPackage: function (pkg) {
+    return {
+      name: pkg.name,
+      url: this.buildUrl(pkg),
+      versions: pkg.assets.reduce(function (memo, asset) {
+        memo[asset.version] = this.buildUrl({
+          name: pkg.name,
+          version: asset.version,
+          filename: pkg.filename || pkg.name
+        });
+        return memo;
+      }.bind(this), {})
+    };
+  },
   /**
    * Cached list of packages
    * Why is this not cached to a file? Becuase the global tool should always go
@@ -96,12 +110,7 @@ var cdnjs = {
       if (err) return cb(err);
       // Loosely search the names of the packages, then trasform them into a
       // usable format.
-      var results = searchByName(term, packages).map(function (pkg) {
-        return {
-          name: pkg.name,
-          url: this.buildUrl(pkg)
-        };
-      }.bind(this));
+      var results = searchByName(term, packages).map(this.buildPackage.bind(this));
       if (!results.length) return cb(new Error("No matching packages found."));
       return cb(null, results);
     }.bind(this));
@@ -114,10 +123,7 @@ var cdnjs = {
       if (err) return cb(err);
       var pkg = findByName(term, packages);
       if (!pkg) return cb(new Error("No such package found."));
-      return cb(null, {
-        name: pkg.name,
-        url: this.buildUrl(pkg)
-      });
+      return cb(null, this.buildPackage(pkg));
     }.bind(this));
   }
 };
