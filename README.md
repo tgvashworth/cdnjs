@@ -2,9 +2,11 @@
 
 [![build status](https://secure.travis-ci.org/phuu/cdnjs.png)](http://travis-ci.org/phuu/cdnjs)
 
-A search and URL retrival tool for [cdnjs](//cdnjs.com).
+A search and URL retrival tool for [cdnjs](//cdnjs.com). It can be used globally, on your command line, or as a module.
 
-## Install
+It powers the [pulldown-api](https://github.com/phuu/pulldown-api).
+
+## Command-line tool
 
 Install `cdnjs` globally:
 
@@ -55,6 +57,94 @@ angular-strap                 : //cdnjs.cloudflare.com/ajax/libs/angular-strap/0
 angular-ui-bootstrap          : //cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.2.0/ui-bootstrap-tpls.min.js
 angular-ui                    : //cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js
 angular.js                    : //cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.1/angular.min.js
+```
+
+## Module
+
+`cdnjs` can also be used as a module. The methods are roughly the same.
+
+### Install
+
+Install via npm:
+
+`npm install cdnjs`
+
+### Search
+
+Search `cdnjs` for a given identifier:
+
+```javascript
+var cdnjs = require('cdnjs'),
+    util = require('util');
+
+cdnjs.search('angular', function (err, packages) {
+  console.log(util.inspect(packages, {
+    depth: null,
+    colors: true
+  }));
+});
+
+/*
+[ { name: 'angular-strap',
+    url: '//cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.3/angular-strap.min.js',
+    versions:
+     { '0.7.3': '//cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.3/angular-strap.min.js',
+       ... } },
+  { name: 'angular-ui-bootstrap',
+    url: '//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.2.0/ui-bootstrap-tpls.min.js',
+    versions: { '0.2.0': '//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.2.0/ui-bootstrap-tpls.min.js' } },
+  { name: 'angular-ui',
+    url: '//cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js',
+    versions: { '0.4.0': '//cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js' } },
+  { name: 'angular.js',
+    url: '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
+    versions:
+     { '1.1.3': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
+       '1.1.1': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.1/angular.min.js',
+       ... } },
+  ... ]
+ */
+```
+
+### URL
+
+Grab a URL for a specific package (it supports versions too):
+
+```javascript
+var cdnjs = require('cdnjs'),
+    util = require('util');
+
+cdnjs.url('angular.js', function (err, packages) {
+  console.log(util.inspect(packages, {
+    depth: null,
+    colors: true
+  }));
+});
+
+/*
+{ name: 'angular.js',
+  url: '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
+  versions:
+   { '1.1.3': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
+     '1.1.1': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.1/angular.min.js',
+     ... } }
+ */
+
+cdnjs.url('angular.js@1.0.0', function (err, packages) {
+  console.log(util.inspect(packages, {
+    depth: null,
+    colors: true
+  }));
+});
+
+/*
+{ name: 'angular.js@1.0.0',
+  url: '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.0.0/angular.min.js',
+  versions:
+   { '1.1.3': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
+     '1.1.1': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.1/angular.min.js',
+     ... } }
+ */
 ```
 
 ## License
