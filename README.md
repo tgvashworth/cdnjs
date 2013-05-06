@@ -35,6 +35,14 @@ To get a url for a library:
 jquery                        : //cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js
 ```
 
+The url method also supports versioning:
+
+`cdnjs url jquery@1.7.1`
+
+```
+jquery@1.7.1                  : //cdnjs.cloudflare.com/ajax/libs/jquery/1.7.1/jquery.min.js
+```
+
 ### Default
 
 With only one argument passed, `cdnjs` assumes you want to search.
