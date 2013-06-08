@@ -67,6 +67,26 @@ describe('url', function () {
     });
   });
 
+  it('should find a url for a known package with ".js" added to the name', function (done) {
+    this.timeout(5000);
+    cdnjs.url('jquery.js', function (err, result) {
+      should.not.exist(err);
+      result.should.be.ok;
+      result.name.should.equal('jquery');
+      done();
+    });
+  });
+
+  it('should find a url for a known package with ".js" missing from the name', function (done) {
+    this.timeout(5000);
+    cdnjs.url('require', function (err, result) {
+      should.not.exist(err);
+      result.name.should.equal('require.js');
+      result.url.should.match(/\/\/cdnjs.cloudflare.com\/ajax\/libs\/require.js\/(.*)\/require.min.js/);
+      done();
+    });
+  });
+
   it('should find a versioned url for a known package', function (done) {
     this.timeout(5000);
     cdnjs.url('angular.js@1.0.0', function (err, result) {

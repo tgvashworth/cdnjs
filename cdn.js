@@ -44,6 +44,17 @@ var findByName = findBy.bind(null, 'name');
 var findByFilename = findBy.bind(null, 'filename');
 var findByDescription = findBy.bind(null, 'description');
 
+var toggleExtension = function (name) {
+    var endsWithJS = /\.js$/;
+    if (endsWithJS.test(name)) {
+        name = name.replace(endsWithJS, '');
+    }
+    else {
+        name += '.js';
+    }
+    return name;
+};
+
 // The main cdnjs object
 
 var cdnjs = {
@@ -149,6 +160,7 @@ var cdnjs = {
     this.packages(function (err, packages) {
       if (err) return cb(err);
       var pkg = findByName(term.name, packages);
+      if (!pkg) pkg = findByName(toggleExtension(term.name), packages);
       if (!pkg) return cb(new Error("No such package found."));
       var version = this.getVersion(term.version, this.buildPackage(pkg));
       return cb(null, version);
