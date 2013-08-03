@@ -2,7 +2,7 @@
 
 [![build status](https://secure.travis-ci.org/phuu/cdnjs.png)](http://travis-ci.org/phuu/cdnjs)
 
-A search and URL retrival tool for [cdnjs](//cdnjs.com). It can be used globally, on your command line, or as a module.
+A search and URL retrieval tool for [cdnjs](//cdnjs.com). It can be used globally, on your command line, or as a module.
 
 It powers the [pulldown-api](https://github.com/phuu/pulldown-api).
 
