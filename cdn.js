@@ -59,7 +59,7 @@ var toggleExtension = function (name) {
 
 var cdnjs = {
   urls: {
-    packages: 'https://raw.github.com/cdnjs/website/gh-pages/packages.json',
+    packages: 'https://cdnjs.com/packages.json',
     base: '//cdnjs.cloudflare.com/ajax/libs/'
   },
   /**
