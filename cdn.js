@@ -20,7 +20,7 @@ var searchBy = function (key, term, array) {
 };
 
 var pad = function (str, len) {
-  while( str.length < len) {
+  while (str.length < len) {
     str += ' ';
   }
   return str;
@@ -45,14 +45,14 @@ var findByFilename = findBy.bind(null, 'filename');
 var findByDescription = findBy.bind(null, 'description');
 
 var toggleExtension = function (name) {
-    var endsWithJS = /\.js$/;
-    if (endsWithJS.test(name)) {
-        name = name.replace(endsWithJS, '');
-    }
-    else {
-        name += '.js';
-    }
-    return name;
+  var endsWithJS = /\.js$/;
+  if (endsWithJS.test(name)) {
+    name = name.replace(endsWithJS, '');
+  }
+  else {
+    name += '.js';
+  }
+  return name;
 };
 
 // The main cdnjs object
@@ -62,6 +62,7 @@ var cdnjs = {
     packages: 'https://cdnjs.com/packages.json',
     base: '//cdnjs.cloudflare.com/ajax/libs/'
   },
+
   /**
    * Build a cdnjs URL for the given package
    */
@@ -69,6 +70,7 @@ var cdnjs = {
     var base = this.urls.base;
     return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
   },
+
   /**
    * Build a usable package object with versions
    */
@@ -87,6 +89,7 @@ var cdnjs = {
       }.bind(this), {})
     };
   },
+
   /**
    * Extract package name and version from search term
    */
@@ -97,6 +100,7 @@ var cdnjs = {
       version: segments[1]
     };
   },
+
   /**
    * Get the correct version for a given package
    */
@@ -108,6 +112,7 @@ var cdnjs = {
     pkg.name = pkg.name + '@' + version;
     return pkg;
   },
+
   /**
    * Cached list of packages
    * Why is this not cached to a file? Becuase the global tool should always go
@@ -115,6 +120,7 @@ var cdnjs = {
    * memory so it needs recaching after 24 hours.
    */
   cache: null,
+
   /**
    * Grab the packages from the local cache, or cdnjs.
    */
@@ -152,6 +158,7 @@ var cdnjs = {
       return cb(null, results);
     }.bind(this));
   },
+
   /**
    * Get a URL for an exact identifier match.
    */
