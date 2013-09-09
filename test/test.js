@@ -19,8 +19,7 @@ describe('packages', function () {
       should.not.exist(err);
       packages.should.be.ok;
       packages.should.be.an.instanceOf(Array);
-      cdnjs.cache.should.be.ok;
-      cdnjs.cache.packages.should.be.an.instanceOf(Array);
+      cdnjs.cache.packages.should.be.ok.and.be.an.instanceOf(Array);
       cdnjs.packages(function (err, cachePackages, hitCache) {
         hitCache.should.be.ok;
         done();
@@ -34,11 +33,11 @@ describe('search', function () {
 
   it('should find a known set of packages', function (done) {
     this.timeout(5000);
-    cdnjs.search('require', function (err, result) {
+    cdnjs.search('jquery', function (err, result) {
       should.not.exist(err);
       result.should.be.ok;
       result.should.be.an.instanceOf(Array);
-      result.length.should.be.above(5);
+      result.length.should.be.above(20);
       done();
     });
   });
@@ -47,7 +46,7 @@ describe('search', function () {
     this.timeout(5000);
     cdnjs.url('require.js', function (err, result) {
       should.not.exist(err);
-      result.name.should.equal('require.js');
+      result.name.should.equal('require');
       result.url.should.match(/\/\/cdnjs.cloudflare.com\/ajax\/libs\/require.js\/(.*)\/require.min.js/);
       done();
     });
@@ -62,7 +61,7 @@ describe('url', function () {
     cdnjs.url('angular.js', function (err, result) {
       should.not.exist(err);
       result.should.be.ok;
-      result.name.should.equal('angular.js');
+      result.name.should.equal('angular');
       done();
     });
   });
@@ -81,7 +80,7 @@ describe('url', function () {
     this.timeout(5000);
     cdnjs.url('require', function (err, result) {
       should.not.exist(err);
-      result.name.should.equal('require.js');
+      result.name.should.equal('require');
       result.url.should.match(/\/\/cdnjs.cloudflare.com\/ajax\/libs\/require.js\/(.*)\/require.min.js/);
       done();
     });
@@ -92,7 +91,7 @@ describe('url', function () {
     cdnjs.url('angular.js@1.0.0', function (err, result) {
       should.not.exist(err);
       result.should.be.ok;
-      result.name.should.equal('angular.js@1.0.0');
+      result.name.should.equal('angular@1.0.0');
       result.url.should.include('1.0.0');
       done();
     });

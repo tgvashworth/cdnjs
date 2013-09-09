@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-var request = require('request'),
-    util = require('util'),
-    moment = require('moment'),
-    colors = require('colors');
+var request = require('request');
+var util = require('util');
+var moment = require('moment');
+var colors = require('colors');
+var _ = require('lodash');
+var transform = require('cdnjs-transform');
 
 // Search methods (return array)
 
@@ -75,15 +77,18 @@ var cdnjs = {
    * Build a usable package object with versions
    */
   buildPackage: function (pkg) {
-    pkg.assets = pkg.assets || [];
     return {
       name: pkg.name,
-      url: this.buildUrl(pkg),
-      versions: pkg.assets.reduce(function (memo, asset) {
-        memo[asset.version] = this.buildUrl({
-          name: pkg.name,
-          version: asset.version,
-          filename: pkg.filename || pkg.name
+      url: this.buildUrl({
+        name: pkg.root,
+        version: pkg.version,
+        filename: pkg.files.minified
+      }),
+      versions: pkg.versions.reduce(function (memo, version) {
+        memo[version] = this.buildUrl({
+          name: pkg.root,
+          version: version,
+          filename: pkg.files.minified
         });
         return memo;
       }.bind(this), {})
@@ -137,13 +142,17 @@ var cdnjs = {
         if (err) return cb(err);
         // The wrong thing came back, gtfo
         if (!(body && body.packages)) return cb(null, []);
+        var data = transform(body.packages);
         // Cache the good stuff, and set and expiry time
-        this.cache = body;
-        this.cache.expires = moment().add('hours', 24);
-        // Send the packages on back
-        return cb(null, body.packages);
+        this.cache = {
+          packages: data,
+          expires: moment().add('hours', 24)
+        };
+        // Transform the packages into a useful form and send on back
+        return cb(null, data);
       }.bind(this));
   },
+
   /**
    * Search the packages list for an identifier. Loosey-goosey.
    */
