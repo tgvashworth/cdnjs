@@ -189,45 +189,47 @@ var cdnjs = {
 
 // Handle command line usage
 
-com
-  .version(cdnjsPkg.version)
-  .usage('[-r] <search|url> library')
-  .option('-u, --url-only', 'Output only the url')
-  .on('--help', function() {
-    console.log(fs.readFileSync('help-examples.txt', 'utf-8'));
-  })
-  .parse(process.argv)
+if(require.main === module) {
+  com
+    .version(cdnjsPkg.version)
+    .usage('[-u] <search|url> library')
+    .option('-u, --url-only', 'Output only the url')
+    .on('--help', function() {
+      console.log(fs.readFileSync('help-examples.txt', 'utf-8'));
+    })
+    .parse(process.argv)
 
-if (com.args.length === 0) {
-  com.help();
-}
-else {
-  (function () {
-    var method = com.args[0],
-        term = com.args[1];
-    if (! cdnjs[method]) {
-      console.log("Unknown method, assuming search.".red);
-      if (! term) { term = method; }
-      method = 'search';
-    }
-    var result = cdnjs[method](term, function (err, results) {
-      if (err) return console.log((''+err).red) && process.exit(1);
-      if ((!results)) return console.log("Error: Nothing found.".red) && process.exit(1);
+  if (com.args.length === 0) {
+    com.help();
+  }
+  else {
+    (function () {
+      var method = com.args[0],
+          term = com.args[1];
+      if (! cdnjs[method]) {
+        console.log("Unknown method, assuming search.".red);
+        if (! term) { term = method; }
+        method = 'search';
+      }
+      var result = cdnjs[method](term, function (err, results) {
+        if (err) return console.log((''+err).red) && process.exit(1);
+        if ((!results)) return console.log("Error: Nothing found.".red) && process.exit(1);
 
-      if (!util.isArray(results)) results = [results];
+        if (!util.isArray(results)) results = [results];
 
-      results.forEach(function (result) {
-        if(com.urlOnly) {
-          console.log(result.url);
-        }
-        else {
-          var name = pad(result.name, 30);
-          if (term === result.name) name = name.green;
-          console.log( name + (': ' + result.url).grey );
-        }
+        results.forEach(function (result) {
+          if(com.urlOnly) {
+            console.log(result.url);
+          }
+          else {
+            var name = pad(result.name, 30);
+            if (term === result.name) name = name.green;
+            console.log( name + (': ' + result.url).grey );
+          }
+        });
       });
-    });
-  }());
+    }());
+  }
 }
 
 // Export the API

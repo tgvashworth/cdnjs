@@ -7,7 +7,7 @@
     "cdnjs": "cdn.js"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --timeout 20000"
   },
   "repository": {
     "type": "git",
