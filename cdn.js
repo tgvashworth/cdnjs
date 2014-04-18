@@ -192,7 +192,6 @@ var cdnjs = {
 com
   .version(cdnjsPkg.version)
   .usage('[-r] <search|url> library')
-  .option('-u, --url-only', 'Output only the url')
   .on('--help', function() {
     console.log(fs.readFileSync('help-examples.txt', 'utf-8'));
   })
