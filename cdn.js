@@ -6,6 +6,9 @@ var moment = require('moment');
 var colors = require('colors');
 var _ = require('lodash');
 var transform = require('cdnjs-transform');
+var com = require('commander');
+var fs = require('fs');
+var cdnjsPkg = require('./package.json');
 
 // Search methods (return array)
 
@@ -186,28 +189,47 @@ var cdnjs = {
 
 // Handle command line usage
 
-if (process.argv.length > 2) {
-  (function () {
-    var method = process.argv[2],
-        term = process.argv[3];
-    if (! cdnjs[method]) {
-      console.log("Unknown method, assuming search.".red);
-      if (! term) { term = method; }
-      method = 'search';
-    }
-    var result = cdnjs[method](term, function (err, results) {
-      if (err) return console.log((''+err).red) && process.exit(1);
-      if ((!results)) return console.log("Error: Nothing found.".red) && process.exit(1);
+if(require.main === module) {
+  com
+    .version(cdnjsPkg.version)
+    .usage('[-u] <search|url> library')
+    .option('-u, --url-only', 'Output only the url')
+    .on('--help', function() {
+      console.log(fs.readFileSync('help-examples.txt', 'utf-8'));
+    })
+    .parse(process.argv)
 
-      if (!util.isArray(results)) results = [results];
+  if (com.args.length === 0) {
+    com.help();
+  }
+  else {
+    (function () {
+      var method = com.args[0],
+          term = com.args[1];
+      if (! cdnjs[method]) {
+        console.log("Unknown method, assuming search.".red);
+        if (! term) { term = method; }
+        method = 'search';
+      }
+      var result = cdnjs[method](term, function (err, results) {
+        if (err) return console.log((''+err).red) && process.exit(1);
+        if ((!results)) return console.log("Error: Nothing found.".red) && process.exit(1);
 
-      results.forEach(function (result) {
-        var name = pad(result.name, 30);
-        if (term === result.name) name = name.green;
-        console.log( name + (': ' + result.url).grey );
+        if (!util.isArray(results)) results = [results];
+
+        results.forEach(function (result) {
+          if(com.urlOnly) {
+            console.log(result.url);
+          }
+          else {
+            var name = pad(result.name, 30);
+            if (term === result.name) name = name.green;
+            console.log( name + (': ' + result.url).grey );
+          }
+        });
       });
-    });
-  }());
+    }());
+  }
 }
 
 // Export the API

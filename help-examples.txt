@@ -1,0 +1,24 @@
+  Examples:
+
+    $ cdnjs require
+    $ cdnjs search require
+
+        require-cs                    : //cdnjs.cloudflare.com/ajax/libs/require-cs/0.4.2/cs.js
+        require-domReady              : //cdnjs.cloudflare.com/ajax/libs/require-domReady/2.0.1/domReady.js
+        require-i18n                  : //cdnjs.cloudflare.com/ajax/libs/require-i18n/2.0.1/i18n.js
+        require-jquery                : //cdnjs.cloudflare.com/ajax/libs/require-jquery/0.25.0/require-jquery.min.js
+        require-text                  : //cdnjs.cloudflare.com/ajax/libs/require-text/2.0.5/text.js
+        require.js                    : //cdnjs.cloudflare.com/ajax/libs/require.js/2.1.5/require.min.js
+
+    $ cdnjs url jquery
+
+        jquery                        : //cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js
+
+    $ cdnjs url jquery@1.7.1
+
+        jquery@1.7.1                  : //cdnjs.cloudflare.com/ajax/libs/jquery/1.7.1/jquery.min.js
+
+    $ cdnjs -u url moment
+
+        //cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js
+
