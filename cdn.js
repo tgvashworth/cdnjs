@@ -192,6 +192,7 @@ var cdnjs = {
 com
   .version(cdnjsPkg.version)
   .usage('[-r] <search|url> library')
+  .option('-u, --url-only', 'Output only the url')
   .on('--help', function() {
     console.log(fs.readFileSync('help-examples.txt', 'utf-8'));
   })
@@ -216,9 +217,14 @@ else {
       if (!util.isArray(results)) results = [results];
 
       results.forEach(function (result) {
-        var name = pad(result.name, 30);
-        if (term === result.name) name = name.green;
-        console.log( name + (': ' + result.url).grey );
+        if(com.urlOnly) {
+          console.log(result.url);
+        }
+        else {
+          var name = pad(result.name, 30);
+          if (term === result.name) name = name.green;
+          console.log( name + (': ' + result.url).grey );
+        }
       });
     });
   }());
