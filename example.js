@@ -1,3 +1,5 @@
+// Example module use
+
 var cdnjs = require('./'),
     util = require('util');
 

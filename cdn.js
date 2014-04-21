@@ -1,14 +1,8 @@
-#!/usr/bin/env node
+'use strict';
 
 var request = require('request');
-var util = require('util');
 var moment = require('moment');
-var colors = require('colors');
-var _ = require('lodash');
 var transform = require('cdnjs-transform');
-var com = require('commander');
-var fs = require('fs');
-var cdnjsPkg = require('./package.json');
 
 // Search methods (return array)
 
@@ -24,16 +18,10 @@ var searchBy = function (key, term, array) {
   return matches;
 };
 
-var pad = function (str, len) {
-  while (str.length < len) {
-    str += ' ';
-  }
-  return str;
-};
-
 var searchByName = searchBy.bind(null, 'name');
-var searchByFilename = searchBy.bind(null, 'filename');
-var searchByDescription = searchBy.bind(null, 'description');
+// Also possible:
+// var searchByFilename = searchBy.bind(null, 'filename');
+// var searchByDescription = searchBy.bind(null, 'description');
 
 // Find methods (returns object or false)
 
@@ -46,8 +34,9 @@ var findBy = function (key, term, array) {
 };
 
 var findByName = findBy.bind(null, 'name');
-var findByFilename = findBy.bind(null, 'filename');
-var findByDescription = findBy.bind(null, 'description');
+// Also possible:
+// var findByFilename = findBy.bind(null, 'filename');
+// var findByDescription = findBy.bind(null, 'description');
 
 var toggleExtension = function (name) {
   var endsWithJS = /\.js$/;
@@ -113,9 +102,9 @@ var cdnjs = {
    * Get the correct version for a given package
    */
   getVersion: function (version, pkg) {
-    if (!version) return pkg;
-    if (pkg.url.indexOf(version) !== -1) return pkg;
-    if (!pkg.versions[version]) return pkg;
+    if (!version) { return pkg; }
+    if (pkg.url.indexOf(version) !== -1) { return pkg; }
+    if (!pkg.versions[version]) { return pkg; }
     pkg.url = pkg.versions[version];
     pkg.name = pkg.name + '@' + version;
     return pkg;
@@ -142,9 +131,9 @@ var cdnjs = {
     // Grab some JSON from the cdnjs list
     request
       .get({ url: this.urls.packages, json:true }, function (err, res, body) {
-        if (err) return cb(err);
+        if (err) { return cb(err); }
         // The wrong thing came back, gtfo
-        if (!(body && body.packages)) return cb(null, []);
+        if (!(body && body.packages)) { return cb(null, []); }
         var data = transform(body.packages);
         // Cache the good stuff, and set and expiry time
         this.cache = {
@@ -162,11 +151,11 @@ var cdnjs = {
   search: function (term, cb) {
     term = this.extractTerm(term);
     this.packages(function (err, packages) {
-      if (err) return cb(err);
+      if (err) { return cb(err); }
       // Loosely search the names of the packages, then trasform them into a
       // usable format.
       var results = searchByName(term.name, packages).map(this.buildPackage.bind(this));
-      if (!results.length) return cb(new Error("No matching packages found."));
+      if (!results.length) { return cb(new Error("No matching packages found.")); }
       return cb(null, results);
     }.bind(this));
   },
@@ -177,60 +166,15 @@ var cdnjs = {
   url: function (term, cb) {
     term = this.extractTerm(term);
     this.packages(function (err, packages) {
-      if (err) return cb(err);
+      if (err) { return cb(err); }
       var pkg = findByName(term.name, packages);
-      if (!pkg) pkg = findByName(toggleExtension(term.name), packages);
-      if (!pkg) return cb(new Error("No such package found."));
+      if (!pkg) { pkg = findByName(toggleExtension(term.name), packages); }
+      if (!pkg) { return cb(new Error("No such package found.")); }
       var version = this.getVersion(term.version, this.buildPackage(pkg));
       return cb(null, version);
     }.bind(this));
   }
 };
-
-// Handle command line usage
-
-if(require.main === module) {
-  com
-    .version(cdnjsPkg.version)
-    .usage('[-u] <search|url> library')
-    .option('-u, --url-only', 'Output only the url')
-    .on('--help', function() {
-      console.log(fs.readFileSync('help-examples.txt', 'utf-8'));
-    })
-    .parse(process.argv)
-
-  if (com.args.length === 0) {
-    com.help();
-  }
-  else {
-    (function () {
-      var method = com.args[0],
-          term = com.args[1];
-      if (! cdnjs[method]) {
-        console.log("Unknown method, assuming search.".red);
-        if (! term) { term = method; }
-        method = 'search';
-      }
-      var result = cdnjs[method](term, function (err, results) {
-        if (err) return console.log((''+err).red) && process.exit(1);
-        if ((!results)) return console.log("Error: Nothing found.".red) && process.exit(1);
-
-        if (!util.isArray(results)) results = [results];
-
-        results.forEach(function (result) {
-          if(com.urlOnly) {
-            console.log(result.url);
-          }
-          else {
-            var name = pad(result.name, 30);
-            if (term === result.name) name = name.green;
-            console.log( name + (': ' + result.url).grey );
-          }
-        });
-      });
-    }());
-  }
-}
 
 // Export the API
 module.exports = cdnjs;
