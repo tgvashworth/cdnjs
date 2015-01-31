@@ -26,8 +26,34 @@ if (com.args.length === 0) { return com.help(); }
 var method = com.args[0];
 var term = com.args[1];
 
+if (method === 'update') {
+  console.log ('Updating local cache...'.blue);
+  cdnjs.update (function (err, libraries) {
+    if (err) {
+      console.log ('An error happened while retrieving the libraries from cdnjs.com.\nCheck your internet connection.'.red);
+    } else {
+      cdnjs._setLocalCache (libraries, function (err) {
+        if (err) {
+          console.log ('An error happened while writing the local cache.\nMake sure that you have the rights to write in ~/.cdnjs'.red);
+        } else {
+          console.log ('Cache updated successfully.'.green);
+        }
+      });
+    }
+  });
+} else {
+  cdnjs.setMemoryCache (function (err) {
+    if (!err) {
+      console.log ('do stuff');
+    } else {
+      console.log ('No local cache found, please run `cdnjs update`'.red);
+    }
+  });
+}
+
+/*
 if (!cdnjs[method]) {
-  console.log('Unknown method, assuming search.'.red);
+  console.log('Unknown method, assuming search.'.yellow);
   if (!term) { term = method; }
   method = 'search';
 }
@@ -57,3 +83,4 @@ function pad(str, len) {
   }
   return str;
 }
+*/
