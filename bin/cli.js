@@ -9,6 +9,14 @@ var pkg = require('../package.json');
 
 var cdnjs = require('../cdn.js');
 
+var pad = function (str, len) {
+  if (len % 2 === 0) len += 2;
+  else if (len % 2 === 1) len += 3;
+  while (str.length < len) {
+    str += ' ';
+  }
+  return '      ' + str;
+}
 
 // Usage
 com
@@ -27,16 +35,16 @@ var method = com.args[0];
 var term = com.args[1];
 
 if (method === 'update') {
-  console.log ('Updating local cache...'.blue);
+  console.log ('    ==> Updating local cache...'.blue);
   cdnjs.update (function (err, libraries) {
     if (err) {
-      console.log ('An error happened while retrieving the libraries from cdnjs.com.\nCheck your internet connection.'.red);
+      console.log ('    ==> An error happened while retrieving the libraries from cdnjs.com.\nCheck your internet connection.'.red);
     } else {
       cdnjs._setLocalCache (libraries, function (err) {
         if (err) {
-          console.log ('An error happened while writing the local cache.\nMake sure that you have the rights to write in ~/.cdnjs'.red);
+          console.log ('    ==> An error happened while writing the local cache.\nMake sure that you have the rights to write in ~/.cdnjs'.red);
         } else {
-          console.log ('Cache updated successfully.'.green);
+          console.log ('    ==> Cache updated successfully.'.green);
         }
       });
     }
@@ -44,9 +52,18 @@ if (method === 'update') {
 } else {
   cdnjs.setMemoryCache (function (err) {
     if (!err) {
-      console.log ('do stuff');
+      console.log ('    ==> Searching for '.blue, term.green);
+      cdnjs.search (term, function (err, results) {
+        console.log ('    ==> Results: \n'.blue);
+        var name = results.exact.name;
+        var url = results.exact.latest;
+        console.log (pad (name+'*', results.longestName).green + (': ' + url).grey);
+        results.partials.forEach (function (lib) {
+          console.log (pad (lib.name, results.longestName) + (': ' + lib.latest).grey);
+        });
+      });
     } else {
-      console.log ('No local cache found, please run `cdnjs update`'.red);
+      console.log ('    ==> No local cache found, please run `cdnjs update` first'.red);
     }
   });
 }

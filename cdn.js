@@ -5,7 +5,7 @@ var fs = require('fs');
 
 var request = require('request');
 var moment = require('moment');
-var lodash = require('lodash');
+var _ = require('lodash');
 var async = require('async');
 
 var cacheFolder = path.join (process.env.HOME, '.cdnjs');
@@ -15,6 +15,7 @@ var cdnjs = {
   api: {
     url: 'http://api.cdnjs.com/libraries',
     params: {
+      version: '?fields=version',
       all: '?fields=version,description,homepage,keywords,maintainers,assets'
     }
   },
@@ -26,15 +27,15 @@ var cdnjs = {
 
   update: function (callback) {
     this.getAllLibraries (function (err, total, results) {
-      this.cache.libraires = results;
+      this.cache.libraries = results;
       this.cache.expires = moment ().add (24, 'hours');
-      callback (err, this.cache);
+      callback (err, this.cache.libraries);
     }.bind (this));
   },
 
   getAllLibraries: function (callback) {
     var params = {
-      url: this.api.url,
+      url: this.api.url + this.api.params.version,
       json: true
     };
 
@@ -51,8 +52,27 @@ var cdnjs = {
 
   search: function (name, callback) {
     this.getCache (function (libraries) {
-      var results = _.find (libraries, { 'name': new RegExp (name) });
-      console.log (null, results);
+      var results = {
+        exact: {},
+        partials: [],
+        longestName: 0
+      };
+      libraries.forEach (function (lib) {
+        if (lib.name.match (new RegExp (name)) || lib.name === name) {
+
+          lib.latest = lib.latest.replace (/^http:/, '');
+          if (lib.name === name) {
+            results.exact = lib;
+          } else {
+            results.partials.push (lib);
+          }
+
+          if (lib.name.length > results.longestName) {
+            results.longestName = lib.name.length;
+          }
+        }
+      });
+      callback (null, results);
     });
   },
 
@@ -102,7 +122,7 @@ var cdnjs = {
     });
   },
 
-  getCache: function (cli, callback) {
+  getCache: function (callback) {
     var cache = this.cache;
     // If there is no memory cache, we need to create it.
     // This will not happen with the cli client, since
