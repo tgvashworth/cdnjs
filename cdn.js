@@ -4,38 +4,37 @@ var path = require('path');
 var fs = require('fs');
 
 var request = require('request');
-var moment = require('moment');
+//TODO: use UserAgent
+//TODO: use cli-color
 var _ = require('lodash');
 var async = require('async');
 
-var cacheFolder = path.join (process.env.HOME, '.cdnjs');
-var cacheFile = path.join (cacheFolder, 'librairies.json');
+var persistencePath = path.join (process.env.HOME, '.cdnjs', 'libraries.json');
 
 var cdnjs = {
-  api: {
-    url: 'http://api.cdnjs.com/libraries',
-    params: {
-      version: '?fields=version',
-      all: '?fields=version,description,homepage,keywords,maintainers,assets'
+
+  apiUrl: 'http://api.cdnjs.com/libraries',
+
+  libraries: function (name, fields, callback) {
+    if ('function' === typeof name) {
+      callback = name;
+      name = null;
+      fields = null;
+    } else if ('function' === typeof fields) {
+      callback = fields;
+      if ('object' === typeof name) {
+        fields = name
+        name = null;
+      }
     }
+
+    var url = this._buildUrl (name, fields);
+    this._getLibraries (url, callback);
   },
 
-  cache: {
-    libraries: [],
-    expires: moment ().add (24, 'hours')
-  },
-
-  update: function (callback) {
-    this.getAllLibraries (function (err, total, results) {
-      this.cache.libraries = results;
-      this.cache.expires = moment ().add (24, 'hours');
-      callback (err, this.cache.libraries);
-    }.bind (this));
-  },
-
-  getAllLibraries: function (callback) {
+  _getLibraries: function (url, callback) {
     var params = {
-      url: this.api.url + this.api.params.version,
+      url: url,
       json: true
     };
 
@@ -46,66 +45,67 @@ var cdnjs = {
           total = body.total;
           results = body.results;
         }
-        callback (err, total, results);
+        callback (err, results, total);
       }.bind (this));
   },
 
-  search: function (name, callback) {
-    this.getCache (function (libraries) {
-      var results = {
-        exact: {},
-        partials: [],
-        longestName: 0
-      };
-      libraries.forEach (function (lib) {
-        if (lib.name.match (new RegExp (name)) || lib.name === name) {
+  _buildUrl: function (name, fields) {
+    var url = this.apiUrl;
+    if (name || fields) {
+      url += '?';
+    }
+    if (name) {
+      url += 'search=' + name;
+    }
+    if (name && fields) {
+      url += '&';
+    }
+    if (fields) {
+      url += 'fields=' + fields.join (',');
+    }
+    return url;
+  },
 
-          lib.latest = lib.latest.replace (/^http:/, '');
-          if (lib.name === name) {
-            results.exact = lib;
-          } else {
-            results.partials.push (lib);
-          }
+  search: function (libraries, name, callback) {
+    var results = {
+      exact: null,
+      partials: [],
+      longestName: 0
+    };
+    libraries.forEach (function (lib) {
+      if (lib.name.match (new RegExp (name)) || lib.name === name) {
 
-          if (lib.name.length > results.longestName) {
-            results.longestName = lib.name.length;
-          }
+        lib.latest = lib.latest.replace (/^http:/, '');
+        if (lib.name === name) {
+          results.exact = lib;
+        } else {
+          results.partials.push (lib);
         }
-      });
-      callback (null, results);
-    });
-  },
 
-  setMemoryCache: function (callback) {
-    fs.stat (cacheFile, function (err, stats) {
-      if (err || !stats.isFile ()) {
-        callback (new Error ('No local cache found'));
-      } else {
-        this.getLocalCache (function (cache) {
-          this.cache.libraries = JSON.parse (cache);
-          this.cache.expires = moment ().add (24, 'hours');
-          callback (null);
-        }.bind (this));
+        if (lib.name.length > results.longestName) {
+          results.longestName = lib.name.length;
+        }
       }
-    }.bind (this));
+    });
+    callback (null, results);
   },
 
-  getLocalCache: function (callback) {
-    fs.readFile (cacheFile, function (err, cache) {
-      callback (cache);
-    }.bind (this));
-  },
+  setPersistence: function (cache, filepath, callback) {
+    if ('string' !== typeof filepath) {
+      callback = filepath;
+      filepath = persistencePath;
+    }
 
-  _setLocalCache: function (cache, callback) {
+    var folder = path.dirname (filepath);
     async.waterfall ([
       function (next) {
-        fs.exists (cacheFolder, function (exists) {
+        fs.exists (folder, function (exists) {
           next (null, exists);
         });
       },
       function (isDirectory, next) {
         if (!isDirectory) {
-          fs.mkdir (cacheFolder, function (err) {
+          fs.mkdir (folder, function (err) {
             next (err);
           });
         } else {
@@ -113,7 +113,7 @@ var cdnjs = {
         }
       },
       function (next) {
-        fs.writeFile (cacheFile, JSON.stringify (cache), function (err) {
+        fs.writeFile (filepath, JSON.stringify (cache), function (err) {
           next (err);
         }.bind (this));
       },
@@ -122,21 +122,28 @@ var cdnjs = {
     });
   },
 
-  getCache: function (callback) {
-    var cache = this.cache;
-    // If there is no memory cache, we need to create it.
-    // This will not happen with the cli client, since
-    // the local cache is checked and the memory cache
-    // is updated at launch.
-    if (!cache) {
-      update (function (cache) {
-        callback (cache.libraries);
-      });
-    } else {
-      // TODO: expiring
-      callback (cache.libraries);
+  getPersistence: function (filepath, callback) {
+    if ('function' === typeof filepath) {
+      callback = filepath;
+      filepath = persistencePath;
     }
-  }
+
+    fs.stat (filepath, function (err, stats) {
+      if (err || !stats.isFile ()) {
+        callback (new Error ('No local cache found'), null);
+      } else {
+        fs.readFile (filepath, function (err, cache) {
+          var libraries, err;
+          try {
+            libraries = JSON.parse (cache);
+          } catch (e) {
+            err = e;
+          }
+          callback (err, libraries);
+        }.bind (this));
+      }
+    }.bind (this));
+  },
 
 };
 
