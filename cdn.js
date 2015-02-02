@@ -1,15 +1,11 @@
 'use strict';
 
-var path = require('path');
 var fs = require('fs');
 
 var request = require('request');
 //TODO: use UserAgent
 //TODO: use cli-color
 var _ = require('lodash');
-var async = require('async');
-
-var persistencePath = path.join (process.env.HOME, '.cdnjs', 'libraries.json');
 
 var cdnjs = {
 
@@ -142,68 +138,13 @@ var cdnjs = {
       }.bind (this));
   },
 
-  setPersistence: function (cache, filepath, callback) {
-    if ('string' !== typeof filepath) {
-      callback = filepath;
-      filepath = persistencePath;
-    }
-
-    var folder = path.dirname (filepath);
-    async.waterfall ([
-      function (next) {
-        fs.exists (folder, function (exists) {
-          next (null, exists);
-        });
-      },
-      function (isDirectory, next) {
-        if (!isDirectory) {
-          fs.mkdir (folder, function (err) {
-            next (err);
-          });
-        } else {
-          next (null);
-        }
-      },
-      function (next) {
-        fs.writeFile (filepath, JSON.stringify (cache), function (err) {
-          next (err);
-        }.bind (this));
-      },
-    ], function (err) {
-      callback (err);
-    });
-  },
-
-  getPersistence: function (filepath, callback) {
-    if ('function' === typeof filepath) {
-      callback = filepath;
-      filepath = persistencePath;
-    }
-
-    fs.stat (filepath, function (err, stats) {
-      if (err || !stats.isFile ()) {
-        callback (new Error ('No local cache found'), null);
-      } else {
-        fs.readFile (filepath, function (err, cache) {
-          var libraries, err;
-          try {
-            libraries = JSON.parse (cache);
-          } catch (e) {
-            err = e;
-          }
-          callback (err, libraries);
-        }.bind (this));
-      }
-    }.bind (this));
-  },
-
   extractTerm: function (term) {
     var segments = term.split ('@');
     return {
       name: segments[0],
       version: segments[1]
     };
-  },
+  }
 
 };
 
