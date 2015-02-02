@@ -5,7 +5,7 @@
 var fs = require('fs');
 
 require('colors');
-var com = require('commander');
+var program = require('commander');
 var _ = require ('lodash');
 
 var pkg = require('../package.json');
@@ -21,101 +21,113 @@ var pad = function (str, len) {
 }
 
 // Usage
-com
+program
   .version(pkg.version)
-  .usage('[-q] <search|url> library')
-  .option('-q, --q', 'Quiet mode: output URLs only')
+  .usage('[<options>] {search|url|update} [<args>]')
+  .option('-q, --quiet', 'quiet mode')
   .on('--help', function() {
     console.log(fs.readFileSync('help-examples.txt', 'utf-8'));
   })
   .parse(process.argv);
 
-console.log();
+var getPersistence = function (callback) {
+  cdnjs.getPersistence (function (err, libraries) {
+    if (!err) {
+      callback (libraries);
+    } else {
+      if (err.toString ().match (/No local cache found/)) {
+        if (!program.quiet) console.error ('    ==> No local cache found, please run `cdnjs update` first'.red);
+        else console.error ('No local cache found');
+      } else if (err instanceof SyntaxError) {
+        if (!program.quiet) {
+          console.error ('    ==> Unable to parse the cache file, please run `cdnjs update`.'.red);
+          console.error ('    ==> If the problem persists, remove the folder ~/.cdnjs before running `cdnjs update`.'.red);
+          console.error ('    ==> If this doesn\'t solve the problem, check your version of cdnjs and/or\n      submit an issue at https://github.com/phuu/cdnjs/issues'.red);
+          console.error (err);
+        } else {
+          console.error ('Unable to parse the cache file:', err);
+        }
+      } else {
+        if (!program.quiet) console.error (('    ==> An unknown error happened: \n').red, err);
+        else console.error ('An unknown error happened:', err);
+      }
+    }
+  });
+};
 
 // Show help when used with no args
-if (com.args.length === 0) { return com.help(); }
+if (program.args.length === 0) { return com.help(); }
 
-var method = com.args[0];
-var term = com.args[1];
+var method = program.args[0];
+var term = program.args[1];
 
-if (!term || !_.includes (['update', 'search'], method)) {
-  console.log('    ==> Unknown method, assuming search.\n'.yellow);
+if (!term && !_.includes (['update', 'search', 'url'], method)) {
+  if (!program.quiet) console.log('    ==> Unknown method, assuming search.\n'.yellow);
   term = method;
   method = 'search';
 }
 
 if (method === 'update') {
-  console.log ('    ==> Updating local cache...'.blue);
+  if (!program.quiet) console.log ('    ==> Updating local cache...'.blue);
   cdnjs.libraries (['version'], function (err, libraries, total) {
     if (err) {
-      console.log ('    ==> An error happened while retrieving the libraries from cdnjs.com.\nCheck your internet connection.'.red);
+      if (!program.quiet) console.log ('    ==> An error happened while retrieving the libraries from cdnjs.com.\nCheck your internet connection.\n'.red, err);
+      else console.err ('An error happened while retrieving the libraries from cdnjs.com:', err);
     } else {
       cdnjs.setPersistence (libraries, function (err) {
         if (err) {
-          console.log ('    ==> An error happened while writing the local cache.\nMake sure that you have the rights to write in ~/.cdnjs'.red);
+          if (!program.quiet) console.log ('    ==> An error happened while writing the local cache.\nMake sure that you have the rights to write in ~/.cdnjs\n'.red, err);
+          else console.error ('An error happened while writing the local cache:', err);
         } else {
-          console.log (('    ==> ' + total + ' libraries found.').green);
-          console.log ('    ==> Cache updated successfully.'.green);
+          if (!program.quiet) {
+            console.log (('    ==> ' + total + ' libraries found.').green);
+            console.log ('    ==> Cache updated successfully.'.green);
+          } else {
+            console.log (total);
+          }
         }
       });
     }
-    console.log ();
   });
 } else if (method === 'search') {
-  cdnjs.getPersistence (function (err, libraries) {
-    if (!err) {
-      console.log ('    ==> Searching for '.blue, term.green);
-      cdnjs.search (libraries, term, function (err, results) {
-        console.log ('    ==> Results: \n'.blue);
-        if (results.exact) {
-          var name = results.exact.name;
-          var url = results.exact.latest;
-          console.log (pad (name+'*', results.longestName).green + (': ' + url).grey);
-        }
-        results.partials.forEach (function (lib) {
-          console.log (pad (lib.name, results.longestName) + (': ' + lib.latest).grey);
-        });
-        if (!results.exact && !results.partials.length) {
-          console.log ('    ==> No result found.');
-        }
+  getPersistence (function (libraries) {
+    if (!program.quiet) console.log ('    ==> Searching for '.blue, term.green);
+    cdnjs.search (libraries, term, function (err, results) {
+      if (!program.quiet) console.log ('    ==> Results: \n'.blue);
+      if (results.exact) {
+        var name = results.exact.name;
+        var url = results.exact.latest;
+        if (!program.quiet) console.log (pad (name+'*', results.longestName).green + (': ' + url).grey);
+        else console.log (name + ':' + url);
+      }
+      results.partials.forEach (function (lib) {
+        if (!program.quiet) console.log (pad (lib.name, results.longestName) + (': ' + lib.latest).grey);
+        else console.log (lib.name + ':' + lib.version + ':' + lib.latest);
       });
-    } else if (err.toString ().match (/No local cache found/)) {
-      console.log ('    ==> No local cache found, please run `cdnjs update` first'.red);
-    } else if (err instanceof SyntaxError) {
-      console.log ('    ==> Unable to parse the cache file, please run `cdnjs update`.'.red);
-      console.log ('    ==> If the problem persists, check your version of cdnjs and/or\n      submit an issue at https://github.com/phuu/cdnjs/issues'.red);
-    } else {
-      console.log (('    ==> An unknown error happened: ' + err).red);
-    }
-    console.log ();
+      if (!results.exact && !results.partials.length) {
+        if (!program.quiet) console.log ('    ==> No result found for library', term.green);
+      }
+    });
+  });
+} else if (method === 'url') {
+  getPersistence (function (libraries) {
+    if (!program.quiet) console.log ('    ==> Getting url for '.blue, term.green);
+    var req = cdnjs.extractTerm (term);
+    cdnjs.url (libraries, req.name, req.version, function (err, result, version) {
+      if (!program.quiet) console.log ('    ==> Result: \n'.blue);
+      if (!err) {
+        if (result) {
+          if (!program.quiet) console.log (pad (req.name + (version ? '@' + version : ''), req.name.length).green + (': ' + result).grey);
+          else console.log (req.name + (version ? ':' + version : '') + ':' + result);
+        } else {
+          if (!program.quiet) console.log ('    ==> No result found for library', req.name.green, version ? ('with version ' + version.green) : '');
+        }
+      } else {
+        if (!program.quiet) console.error (('    ==> An unknown error happened; make sure that cdnjs.com is still up.\n').red, err);
+        else console.error ('An unknown error happened:', err);
+      }
+    });
   });
 } else {
 }
 
-/*
-cdnjs[method](term, function (err, results) {
-  if (err) { return console.log((''+err).red) && process.exit(1); }
-  if (!results) { return console.log('Error: Nothing found.'.red) && process.exit(1); }
-
-  if (!Array.isArray(results)) { results = [results]; }
-
-  results.forEach(function (result) {
-    if(com.urlOnly) { return console.log(result.url); }
-
-    var name = pad(result.name, 30);
-    if (term === result.name) { name = name.green; }
-    console.log(
-      name + (': ' + result.url).grey
-    );
-  });
-});
-
-// Utilities
-
-function pad(str, len) {
-  while (str.length < len) {
-    str += ' ';
-  }
-  return str;
-}
-*/

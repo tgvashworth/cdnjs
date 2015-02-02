@@ -90,6 +90,58 @@ var cdnjs = {
     callback (null, results);
   },
 
+  url: function (libraries, name, version, callback) {
+    if ('function' === typeof version) {
+      callback = version;
+      version = null;
+    }
+    this.search (libraries, name, function (err, results) {
+      var library = null;
+      if (results.exact) {
+        library = results.exact;
+      } else if (results.partials.length){
+        library = results.partials[0];
+      }
+
+      if (library) {
+        var url = library.latest;
+        if (version) {
+          var latest = library.version;
+          url = url.replace (RegExp ('(//cdnjs.cloudflare.com/ajax/libs/.*/)' + latest + '(.*)'), '$1' + version + '$2');
+          this._getUrl ('http:' + url, function (err, exists) {
+            if (!err && exists) {
+              callback (err, url, version);
+            } else {
+              callback (err, null, version);
+            }
+          });
+        } else {
+          callback (null, url, version);
+        }
+      } else {
+        callback (null, null, null);
+      }
+    }.bind (this));
+  },
+
+  _getUrl: function (url, callback) {
+    request
+      .get ({ url: url }, function (err, res, body) {
+        var code = res.statusCode;
+        if (!err) {
+          if (code === 200) {
+            callback (err, true);
+          } else if (code === 404) {
+            callback (err, false);
+          } else {
+            callback (new Error ('Unknown Server Error: ' + code), false);
+          }
+        } else {
+          callback (err, false);
+        }
+      }.bind (this));
+  },
+
   setPersistence: function (cache, filepath, callback) {
     if ('string' !== typeof filepath) {
       callback = filepath;
@@ -143,6 +195,14 @@ var cdnjs = {
         }.bind (this));
       }
     }.bind (this));
+  },
+
+  extractTerm: function (term) {
+    var segments = term.split ('@');
+    return {
+      name: segments[0],
+      version: segments[1]
+    };
   },
 
 };

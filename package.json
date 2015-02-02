@@ -25,6 +25,8 @@
   "gitHead": "ec51897347f590dc078c483ad47b3f68d546394b",
   "devDependencies": {},
   "dependencies": {
+    "colors": "^1.0.3",
+    "commander": "^2.6.0",
     "lodash": "^3.0.1",
     "request": "^2.51.0"
   }

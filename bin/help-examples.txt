@@ -18,7 +18,7 @@
 
         jquery@1.7.1                  : //cdnjs.cloudflare.com/ajax/libs/jquery/1.7.1/jquery.min.js
 
-    $ cdnjs -u url moment
+    $ cdnjs -q url moment
 
-        //cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js
+//cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js
 
