@@ -21,6 +21,8 @@ var cdnjs = {
       if ('object' === typeof name) {
         fields = name
         name = null;
+      } else {
+        fields = null;
       }
     }
 

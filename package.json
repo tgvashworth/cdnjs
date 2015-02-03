@@ -7,7 +7,7 @@
     "cdnjs": "bin/cli.js"
   },
   "scripts": {
-    "test": "mocha --timeout 20000"
+    "test": "mocha --recursive"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,9 @@
   "author": "Tom Ashworth <tom@phuu.net>",
   "license": "MIT",
   "gitHead": "ec51897347f590dc078c483ad47b3f68d546394b",
-  "devDependencies": {},
+  "devDependencies": {
+    "should": "^4.6.3"
+  },
   "dependencies": {
     "colors": "^1.0.3",
     "commander": "^2.6.0",
