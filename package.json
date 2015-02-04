@@ -7,7 +7,7 @@
     "cdnjs": "bin/cli.js"
   },
   "scripts": {
-    "test": "mocha --recursive"
+    "test": "jshint --exclude-path .gitignore . && mocha --recursive"
   },
   "repository": {
     "type": "git",

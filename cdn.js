@@ -19,7 +19,7 @@ var cdnjs = {
     } else if ('function' === typeof fields) {
       callback = fields;
       if ('object' === typeof name) {
-        fields = name
+        fields = name;
         name = null;
       } else {
         fields = null;
@@ -105,7 +105,7 @@ var cdnjs = {
         var url = library.latest;
         if (version && version !== library.version) {
           var latest = library.version;
-          url = url.replace (RegExp ('(//cdnjs.cloudflare.com/ajax/libs/.*/)' + latest + '(.*)'), '$1' + version + '$2');
+          url = url.replace (new RegExp ('(//cdnjs.cloudflare.com/ajax/libs/.*/)' + latest + '(.*)'), '$1' + version + '$2');
           this._getUrl ('http:' + url, function (err, exists) {
             if (!err && exists) {
               callback (err, url, version);

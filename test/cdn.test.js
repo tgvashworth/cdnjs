@@ -1,3 +1,5 @@
+'use strict';
+
 var cdnjs = require ('../cdn.js');
 var should = require ('should');
 var _ = require ('lodash');
@@ -190,7 +192,7 @@ describe ('cdn.js', function () {
         should.not.exist (version);
         done ();
       });
-    })
+    });
 
     it ('should not return a url nor a version (library not found)', function (done) {
       cdnjs.url (libraries, 'foobar', '3.2.0', function (err, url, version) {
@@ -198,7 +200,7 @@ describe ('cdn.js', function () {
         should.not.exist (version);
         done ();
       });
-    })
+    });
   });
 
   describe ('#_getUrl ()', function () {
