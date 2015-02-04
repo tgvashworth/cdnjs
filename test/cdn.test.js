@@ -2,6 +2,24 @@ var cdnjs = require ('../cdn.js');
 var should = require ('should');
 var _ = require ('lodash');
 
+var libraries = [
+  { name: 'knockout-bootstrap',
+  latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout-bootstrap/0.2.1/knockout-bootstrap.js',
+  version: '0.2.1' },
+  { name: 'knockout-sortable',
+  latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout-sortable/0.8.1/knockout-sortable.min.js',
+  version: '0.8.1' },
+  { name: 'knockout-validation',
+  latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout-validation/2.0.1/knockout.validation.min.js',
+  version: '2.0.1' },
+  { name: 'knockout.mapping',
+  latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout.mapping/2.4.1/knockout.mapping.js',
+  version: '2.4.1' },
+  { name: 'knockout',
+  latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js',
+  version: '3.2.0' }
+];
+
 describe ('cdn.js', function () {
 
   describe ('#apiUrl', function () {
@@ -10,7 +28,6 @@ describe ('cdn.js', function () {
     });
   });
 
-  /*
   describe ('#libraries ()', function () {
     it ('should get the libraries from cdnjs.com (all libraries)', function (done) {
       cdnjs.libraries (function (err, results, total) {
@@ -116,22 +133,8 @@ describe ('cdn.js', function () {
       done (null);
     });
   });
-  */
 
   describe ('#search ()', function () {
-    var libraries = [
-      { name: 'knockout-bootstrap',
-      latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout-bootstrap/0.2.1/knockout-bootstrap.js' },
-      { name: 'knockout-sortable',
-      latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout-sortable/0.8.1/knockout-sortable.min.js' },
-      { name: 'knockout-validation',
-      latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout-validation/2.0.1/knockout.validation.min.js' },
-      { name: 'knockout.mapping',
-      latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout.mapping/2.4.1/knockout.mapping.js' },
-      { name: 'knockout',
-      latest: 'http://cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js' }
-    ];
-
     it ('should search in an array of results (and find)', function (done) {
       cdnjs.search (libraries, 'knockout', function (err, results) {
         should.not.exist (err);
@@ -160,7 +163,75 @@ describe ('cdn.js', function () {
     });
   });
 
-  describe ('#exractTerm ()', function () {
+  describe ('#url ()', function () {
+    it ('should return a url and a version (library found with the specific version)', function (done) {
+      cdnjs.url (libraries, 'knockout', '3.0.0', function (err, url, version) {
+        should.exist (url);
+        should.exist (version);
+        version.should.equal ('3.0.0');
+        url.should.equal ('//cdnjs.cloudflare.com/ajax/libs/knockout/3.0.0/knockout-min.js');
+        done ();
+      });
+    });
+
+    it ('should only return a version (library found but not the specified version)', function (done) {
+      cdnjs.url (libraries, 'knockout', '1.2.3', function (err, url, version) {
+        should.not.exist (url);
+        should.exist (version);
+        version.should.equal ('1.2.3');
+        done ();
+      });
+    });
+
+    it ('should only return a url (library found and the version specified is the one in the cache)', function (done) {
+      cdnjs.url (libraries, 'knockout', '3.2.0', function (err, url, version) {
+        should.exist (url);
+        url.should.equal ('//cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js');
+        should.not.exist (version);
+        done ();
+      });
+    })
+
+    it ('should not return a url nor a version (library not found)', function (done) {
+      cdnjs.url (libraries, 'foobar', '3.2.0', function (err, url, version) {
+        should.not.exist (url);
+        should.not.exist (version);
+        done ();
+      });
+    })
+  });
+
+  describe ('#_getUrl ()', function () {
+    it ('should return no error and `true` (library exists)', function (done) {
+      var url = 'http://cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js';
+      cdnjs._getUrl (url, function (err, exists) {
+        should.not.exist (err);
+        should.exist (exists);
+        exists.should.be.true;
+        done (err);
+      });
+    });
+
+    it ('should return no error and `false` (library does not exist)', function (done) {
+      var url = 'http://cdnjs.cloudflare.com/ajax/libs/foobar/1.2.3/knockout-min.js';
+      cdnjs._getUrl (url, function (err, exists) {
+        should.not.exist (err);
+        should.exist (exists);
+        exists.should.be.false;
+        done (err);
+      });
+    });
+
+    it ('should return an error and `false` (an error happened between the client and the server)', function (done) {
+      var url = 'htp://example.org';
+      cdnjs._getUrl (url, function (err, exists) {
+        should.exist (err);
+        done ();
+      });
+    });
+  });
+
+  describe ('#extractTerm ()', function () {
     it ('should separate the library name from the version (name@version)', function (done) {
       var term = 'foobar@1.2.3';
       var req = cdnjs.extractTerm (term);

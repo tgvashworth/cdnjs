@@ -103,7 +103,7 @@ var cdnjs = {
 
       if (library) {
         var url = library.latest;
-        if (version) {
+        if (version && version !== library.version) {
           var latest = library.version;
           url = url.replace (RegExp ('(//cdnjs.cloudflare.com/ajax/libs/.*/)' + latest + '(.*)'), '$1' + version + '$2');
           this._getUrl ('http:' + url, function (err, exists) {
@@ -114,7 +114,7 @@ var cdnjs = {
             }
           });
         } else {
-          callback (null, url, version);
+          callback (null, url, null);
         }
       } else {
         callback (null, null, null);
@@ -125,8 +125,8 @@ var cdnjs = {
   _getUrl: function (url, callback) {
     request
       .get ({ url: url }, function (err, res, body) {
-        var code = res.statusCode;
         if (!err) {
+          var code = res.statusCode;
           if (code === 200) {
             callback (err, true);
           } else if (code === 404) {
