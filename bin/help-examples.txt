@@ -12,13 +12,13 @@
 
     $ cdnjs url jquery
 
-        jquery                        : //cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js
+        jquery  : //cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js
 
     $ cdnjs url jquery@1.7.1
 
-        jquery@1.7.1                  : //cdnjs.cloudflare.com/ajax/libs/jquery/1.7.1/jquery.min.js
+        jquery@1.7.1: //cdnjs.cloudflare.com/ajax/libs/jquery/1.7.1/jquery.min.js
 
-    $ cdnjs -q url moment
+    $ cdnjs -q url moment.js
 
-//cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js
+        moment.js ://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js
 

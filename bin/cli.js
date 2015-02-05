@@ -28,7 +28,7 @@ program
   .usage('[<options>] {search|url|update} [<args>]')
   .option('-q, --quiet', 'quiet mode')
   .on('--help', function() {
-    console.log(fs.readFileSync('help-examples.txt', 'utf-8'));
+    console.log(fs.readFileSync('./bin/help-examples.txt', 'utf-8'));
   })
   .parse(process.argv);
 
@@ -159,11 +159,11 @@ if (method === 'update') {
         var name = results.exact.name;
         var url = results.exact.latest;
         if (!program.quiet) console.log (colors.green (pad (name+'*', results.longestName)) + colors.grey (': ' + url));
-        else console.log (name + ':' + url);
+        else console.log (name + ': ' + url);
       }
       results.partials.forEach (function (lib) {
         if (!program.quiet) console.log (pad (lib.name, results.longestName) + colors.grey ((': ' + lib.latest)));
-        else console.log (lib.name + ':' + lib.version + ':' + lib.latest);
+        else console.log (lib.name + ': ' + lib.version + ': ' + lib.latest);
       });
       if (!results.exact && !results.partials.length) {
         if (!program.quiet) console.log ('  No result found for library', colors.green (term));
@@ -179,7 +179,7 @@ if (method === 'update') {
       if (!err) {
         if (result) {
           if (!program.quiet) console.log (colors.green (pad (req.name + (version ? '@' + version : ''), req.name.length)) + colors.grey (': ' + result));
-          else console.log (req.name + (version ? ':' + version : '') + ':' + result);
+          else console.log (req.name + (version ? ': ' + version : '') + ': ' + result);
         } else {
           if (!program.quiet) console.log ('  No result found for library', colors.green (req.name), version ? ('with version ' + colors.green (version)) : '');
         }
@@ -190,5 +190,7 @@ if (method === 'update') {
     });
   });
 } else {
+  if (!program.quiet) console.error (colors.red ('  Unknown command ' + method + '. Run `cdnjs --help` for a list of available commands.'));
+  else console.error ('Unknown command ' + method + '.');
 }
 
