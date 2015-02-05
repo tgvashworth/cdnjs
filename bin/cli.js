@@ -158,12 +158,13 @@ if (method === 'update') {
       if (results.exact) {
         var name = results.exact.name;
         var url = results.exact.latest;
+        var version = results.exact.version;
         if (!program.quiet) console.log (colors.green (pad (name+'*', results.longestName)) + colors.grey (': ' + url));
-        else console.log (name + ': ' + url);
+        else console.log (name + ' ' + version + ' ' + url);
       }
       results.partials.forEach (function (lib) {
         if (!program.quiet) console.log (pad (lib.name, results.longestName) + colors.grey ((': ' + lib.latest)));
-        else console.log (lib.name + ': ' + lib.version + ': ' + lib.latest);
+        else console.log (lib.name + ' ' + lib.version + ' ' + lib.latest);
       });
       if (!results.exact && !results.partials.length) {
         if (!program.quiet) console.log ('  No result found for library', colors.green (term));
@@ -179,7 +180,7 @@ if (method === 'update') {
       if (!err) {
         if (result) {
           if (!program.quiet) console.log (colors.green (pad (req.name + (version ? '@' + version : ''), req.name.length)) + colors.grey (': ' + result));
-          else console.log (req.name + (version ? ': ' + version : '') + ': ' + result);
+          else console.log (req.name + (version ? ' ' + version : '') + ' ' + result);
         } else {
           if (!program.quiet) console.log ('  No result found for library', colors.green (req.name), version ? ('with version ' + colors.green (version)) : '');
         }
