@@ -175,14 +175,17 @@ if (method === 'update') {
   getPersistence (function (libraries) {
     if (!program.quiet) console.log (colors.blue ('  Getting url for '), colors.green (term));
     var req = cdnjs.extractTerm (term);
-    cdnjs.url (libraries, req.name, req.version, function (err, result, version) {
+    cdnjs.url (libraries, req.name, req.version, function (err, url, version) {
       if (!program.quiet) console.log (colors.blue ('  Result: \n'));
       if (!err) {
-        if (result) {
-          if (!program.quiet) console.log (colors.green (pad (req.name + (version ? '@' + version : ''), req.name.length)) + colors.grey (': ' + result));
-          else console.log (req.name + (version ? ' ' + version : '') + ' ' + result);
+        if (url) {
+          if (!program.quiet) console.log (colors.green (pad (req.name + (version ? '@' + version : ''), req.name.length)) + colors.grey (': ' + url));
+          else console.log (req.name + (version ? ' ' + version : '') + ' ' + url);
         } else {
-          if (!program.quiet) console.log ('  No result found for library', colors.green (req.name), version ? ('with version ' + colors.green (version)) : '');
+          if (!program.quiet) console.log ('  No result found for library', colors.green (req.name), version ? ('with version ' + colors.green (req.version)) : '');
+          if (version !== req.version) {
+            if (!program.quiet) console.log ('  Latest available version:', colors.green (version));
+          }
         }
       } else {
         if (!program.quiet) console.error (colors.red ('  An unknown error happened; make sure that cdnjs.com is still up.\n'), err);

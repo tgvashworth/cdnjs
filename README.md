@@ -2,20 +2,31 @@
 
 
 # Doc in progress...
-# Include GIF
 
+![terminal](http://i.imgur.com/QJ0gnLT.gifv)
 
 [![build status](https://secure.travis-ci.org/phuu/cdnjs.png)](http://travis-ci.org/phuu/cdnjs)
 
 A search and URL retrieval tool for [cdnjs](//cdnjs.com). It can be used globally on your command line, or as a module.
 
-It's version 3.2.0 powers the [pulldown-api](https://github.com/phuu/pulldown-api).
+Its version 3.2.0 powers the [pulldown-api](https://github.com/phuu/pulldown-api).
 
 ## Command-line tool
 
 Install `cdnjs` globally:
 
 `npm install -g cdnjs`
+
+### Update
+
+To be able to search for a library or get a url, you need to update your local library list:
+
+```
+cdnjs update
+ Updating local cache...
+ 1109 libraries found.
+ Cache updated successfully.
+```
 
 ### Search
 
@@ -93,20 +104,66 @@ keywords
 maintainers
 assets
  ```
+All `libraries` query are force-passed a `version` parameter, in case you don't pass one, since it used by the `url ()` method.
  
  - `callback (error, results, total)`: the callback method; `results` is an `Array` of `object` and total is the number of results, returned by the API.
 
+Example:
+
+```
+cdnjs.libraries(function (err, libraries) {
+/* do stuff like store the results, url, search, ... */
+});
+
+
+cdnjs.libraries('knockout', ['keywords'], function (err, libraries) {
+/* do stuff like store the results, url, search, ... */
+});
+```
+
 #### #search (libraries, name, callback)
 
-Search for libraries that match `name`in a set of `libraries`. Parameters:
+Search for libraries that match `name` in a set of `libraries`. Parameters:
 
- - `libraries` (`Array` of `object`): the results from a call to `libraries ()`,
- - `name` (`String`): the (partial) name of a library (the search term),
- - `callback (error, results)`: the callback method; `results` is an `object` with the following parameters:
- 	- `exact` (`object`): an exact match (if any) between the search term and the `libraries`,
- 	- `partials` (`Array` of `object`): patial matches (if any) between the search term and the `libraries`,
- 	- `longuestName` (`Integer`): the longest name of a library amongest the search results (used in the cli).
+  - `libraries` (`Array` of `object`): the results from a call to `libraries ()`,
+  - `name` (`String`): the (partial) name of a library (the search term),
+  - `callback (error, results)`: the callback method; `results` is an `object` with the following parameters:
+    - `exact` (`object`): an exact match (if any) between the search term and the `libraries`,
+    - `partials` (`Array` of `object`): patial matches (if any) between the search term and the `libraries`,
+    - `longestName` (`Integer`): the longest name of a library amongest the search results (used in the cli).
 
+Example:
+
+```
+cdnjs.search(libraries, 'knockout', function (err, results) {
+/* do stuff like console.log... */
+});
+```
+
+#### url (libraries, name, version, callback)
+
+Get the url for the specified library and version. If no exact match is found, the first result from the partial match is returned. Parameters:
+
+  - `libraries` (`Array` of `object`): the results from a call to `libraries ()`,
+  - `name` (`String`): the (partial) name of a library (the search term),
+  - `version` (`String`): the desired version of the library,
+  - `callback (error, result, version)`: the callback method; `result` is a `String` of the returned url, and version is the available version; if no library matching the search term, `result` is `null`; if the desired version of a library is not available, `version` will be the latest one available.
+
+Example:
+
+```
+cdnjs.url(libraries, 'angular.js', function (err, result, version) {
+  /* do stuff like console.log... */
+});
+
+cdnjs.url(libraries, 'angular.js', '1.0.0', function (err, result, version) {
+  /* do stuff like console.log... */
+});
+```
+
+## Testing
+
+Just run `npm test`.
 
 ## License
 

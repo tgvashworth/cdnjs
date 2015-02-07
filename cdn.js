@@ -15,17 +15,20 @@ var cdnjs = {
     if ('function' === typeof name) {
       callback = name;
       name = null;
-      fields = null;
+      fields = [];
     } else if ('function' === typeof fields) {
       callback = fields;
       if ('object' === typeof name) {
         fields = name;
         name = null;
       } else {
-        fields = null;
+        fields = [];
       }
     }
 
+    if (fields.indexOf ('version') === -1) {
+      fields.push ('version');
+    }
     var url = this._buildUrl (name, fields);
     this._getLibraries (url, callback);
   },
@@ -41,7 +44,7 @@ var cdnjs = {
         var total, results;
         if (!err) {
           total = body.total;
-          results = body.results;
+          results = _.sortBy (body.results, 'name');
         }
         callback (err, results, total);
       }.bind (this));
@@ -105,12 +108,12 @@ var cdnjs = {
         var url = library.latest;
         if (version && version !== library.version) {
           var latest = library.version;
-          url = url.replace (new RegExp ('(//cdnjs.cloudflare.com/ajax/libs/.*/)' + latest + '(.*)'), '$1' + version + '$2');
+          url = url.replace (new RegExp ('(//cdnjs.cloudflare.com/ajax/libs/.*/)' + latest + '(/.*)'), '$1' + version + '$2');
           this._getUrl ('http:' + url, function (err, exists) {
             if (!err && exists) {
               callback (err, url, version);
             } else {
-              callback (err, null, version);
+              callback (err, null, latest);
             }
           });
         } else {

@@ -180,7 +180,7 @@ describe ('cdn.js', function () {
       cdnjs.url (libraries, 'knockout', '1.2.3', function (err, url, version) {
         should.not.exist (url);
         should.exist (version);
-        version.should.equal ('1.2.3');
+        version.should.equal ('3.2.0');
         done ();
       });
     });
