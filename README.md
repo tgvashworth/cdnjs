@@ -3,7 +3,7 @@
 
 # Doc in progress...
 
-![terminal](http://i.imgur.com/QJ0gnLT.gifv)
+![terminal](http://i.imgur.com/QJ0gnLT.gif)
 
 [![build status](https://secure.travis-ci.org/phuu/cdnjs.png)](http://travis-ci.org/phuu/cdnjs)
 
