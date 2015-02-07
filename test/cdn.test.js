@@ -31,6 +31,7 @@ describe ('cdn.js', function () {
   });
 
   describe ('#libraries ()', function () {
+    this.timeout (5000);
     it ('should get the libraries from cdnjs.com (all libraries)', function (done) {
       cdnjs.libraries (function (err, results, total) {
         should.not.exist (err);
@@ -80,6 +81,7 @@ describe ('cdn.js', function () {
   });
 
   describe ('#_getLibraries ()', function () {
+    this.timeout (5000);
     it ('should get the libraries from cdnjs remote url', function (done) {
       cdnjs._getLibraries ('http://api.cdnjs.com/libraries?search=foobar', function (err, results, total) {
         should.not.exist (err);
@@ -166,6 +168,7 @@ describe ('cdn.js', function () {
   });
 
   describe ('#url ()', function () {
+    this.timeout (5000);
     it ('should return a url and a version (library found with the specific version)', function (done) {
       cdnjs.url (libraries, 'knockout', '3.0.0', function (err, url, version) {
         should.exist (url);
@@ -204,6 +207,7 @@ describe ('cdn.js', function () {
   });
 
   describe ('#_getUrl ()', function () {
+    this.timeout (5000);
     it ('should return no error and `true` (library exists)', function (done) {
       var url = 'http://cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js';
       cdnjs._getUrl (url, function (err, exists) {
