@@ -1,10 +1,15 @@
 # cdnjs
 
+
+# Doc in progress...
+# Include GIF
+
+
 [![build status](https://secure.travis-ci.org/phuu/cdnjs.png)](http://travis-ci.org/phuu/cdnjs)
 
-A search and URL retrieval tool for [cdnjs](//cdnjs.com). It can be used globally, on your command line, or as a module.
+A search and URL retrieval tool for [cdnjs](//cdnjs.com). It can be used globally on your command line, or as a module.
 
-It powers the [pulldown-api](https://github.com/phuu/pulldown-api).
+It's version 3.2.0 powers the [pulldown-api](https://github.com/phuu/pulldown-api).
 
 ## Command-line tool
 
@@ -16,47 +21,49 @@ Install `cdnjs` globally:
 
 To search cdnjs:
 
-`cdnjs search require`
-
 ```
-require-cs                    : //cdnjs.cloudflare.com/ajax/libs/require-cs/0.4.2/cs.js
-require-domReady              : //cdnjs.cloudflare.com/ajax/libs/require-domReady/2.0.1/domReady.js
-require-i18n                  : //cdnjs.cloudflare.com/ajax/libs/require-i18n/2.0.1/i18n.js
-require-jquery                : //cdnjs.cloudflare.com/ajax/libs/require-jquery/0.25.0/require-jquery.min.js
-require-text                  : //cdnjs.cloudflare.com/ajax/libs/require-text/2.0.5/text.js
-require.js                    : //cdnjs.cloudflare.com/ajax/libs/require.js/2.1.5/require.min.js
+$ cdnjs search require
+
+    require-cs            : //cdnjs.cloudflare.com/ajax/libs/require-cs/0.4.2/cs.js
+    require-css           : //cdnjs.cloudflare.com/ajax/libs/require-css/0.1.5/css.js
+    require-domReady      : //cdnjs.cloudflare.com/ajax/libs/require-domReady/2.0.1/domReady.js
+    require-i18n          : //cdnjs.cloudflare.com/ajax/libs/require-i18n/2.0.4/i18n.js
+    require-jquery        : //cdnjs.cloudflare.com/ajax/libs/require-jquery/0.25.0/require-jquery.min.js
+    require-text          : //cdnjs.cloudflare.com/ajax/libs/require-text/2.0.12/text.js
+    require.js            : //cdnjs.cloudflare.com/ajax/libs/require.js/2.1.15/require.min.js
 ```
 
 ### URL
 
 To get a url for a library:
 
-`cdnjs url jquery`
-
 ```
-jquery                        : //cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js
+$ cdnjs url jquery
+
+    jquery  : //cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js
 ```
 
 The url method also supports versioning:
 
-`cdnjs url jquery@1.7.1`
-
 ```
-jquery@1.7.1                  : //cdnjs.cloudflare.com/ajax/libs/jquery/1.7.1/jquery.min.js
+$ cdnjs url jquery@2.1.0
+
+    jquery@2.1.0: //cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.min.js
 ```
 
 ### Default
 
 With only one argument passed, `cdnjs` assumes you want to search.
 
-`cdnjs angular`
-
 ```
+$ cdnjs knockout
 Unknown method, assuming search.
-angular-strap                 : //cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.1/angular-strap.min.js
-angular-ui-bootstrap          : //cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.2.0/ui-bootstrap-tpls.min.js
-angular-ui                    : //cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js
-angular.js                    : //cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.1/angular.min.js
+
+    knockout*             : //cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js
+    knockout-bootstrap    : //cdnjs.cloudflare.com/ajax/libs/knockout-bootstrap/0.2.1/knockout-bootstrap.js
+    knockout-sortable     : //cdnjs.cloudflare.com/ajax/libs/knockout-sortable/0.8.1/knockout-sortable.min.js
+    knockout-validation   : //cdnjs.cloudflare.com/ajax/libs/knockout-validation/2.0.1/knockout.validation.min.js
+    knockout.mapping      : //cdnjs.cloudflare.com/ajax/libs/knockout.mapping/2.4.1/knockout.mapping.js
 ```
 
 ## Module
@@ -69,83 +76,37 @@ Install via npm:
 
 `npm install cdnjs`
 
-### Search
+### Methods
 
-Search `cdnjs` for a given identifier:
+#### #libraries ([search], [fields], callback)
 
-```javascript
-var cdnjs = require('cdnjs'),
-    util = require('util');
+Get libraries from cdnjs.com's api (`http://api.cdnjs.com/libraries`). It takes three parameters, two of which are optional:
 
-cdnjs.search('angular', function (err, packages) {
-  console.log(util.inspect(packages, {
-    depth: null,
-    colors: true
-  }));
-});
-
-/*
-[ { name: 'angular-strap',
-    url: '//cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.3/angular-strap.min.js',
-    versions:
-     { '0.7.3': '//cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.3/angular-strap.min.js',
-       ... } },
-  { name: 'angular-ui-bootstrap',
-    url: '//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.2.0/ui-bootstrap-tpls.min.js',
-    versions: { '0.2.0': '//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.2.0/ui-bootstrap-tpls.min.js' } },
-  { name: 'angular-ui',
-    url: '//cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js',
-    versions: { '0.4.0': '//cdnjs.cloudflare.com/ajax/libs/angular-ui/0.4.0/angular-ui.min.js' } },
-  { name: 'angular.js',
-    url: '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
-    versions:
-     { '1.1.3': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
-       '1.1.1': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.1/angular.min.js',
-       ... } },
-  ... ]
- */
+ - `search` (`String`, optional): a search term that would narrow down the results,
+ - `fields` (`Array` of `String`, optional): information about the libraries, returned by the API; values can be:
+ 
 ```
+version
+description
+homepage
+keywords
+maintainers
+assets
+ ```
+ 
+ - `callback (error, results, total)`: the callback method; `results` is an `Array` of `object` and total is the number of results, returned by the API.
 
-### URL
+#### #search (libraries, name, callback)
 
-Grab a URL for a specific package (it supports versions too):
+Search for libraries that match `name`in a set of `libraries`. Parameters:
 
-```javascript
-var cdnjs = require('cdnjs'),
-    util = require('util');
+ - `libraries` (`Array` of `object`): the results from a call to `libraries ()`,
+ - `name` (`String`): the (partial) name of a library (the search term),
+ - `callback (error, results)`: the callback method; `results` is an `object` with the following parameters:
+ 	- `exact` (`object`): an exact match (if any) between the search term and the `libraries`,
+ 	- `partials` (`Array` of `object`): patial matches (if any) between the search term and the `libraries`,
+ 	- `longuestName` (`Integer`): the longest name of a library amongest the search results (used in the cli).
 
-cdnjs.url('angular.js', function (err, packages) {
-  console.log(util.inspect(packages, {
-    depth: null,
-    colors: true
-  }));
-});
-
-/*
-{ name: 'angular.js',
-  url: '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
-  versions:
-   { '1.1.3': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
-     '1.1.1': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.1/angular.min.js',
-     ... } }
- */
-
-cdnjs.url('angular.js@1.0.0', function (err, packages) {
-  console.log(util.inspect(packages, {
-    depth: null,
-    colors: true
-  }));
-});
-
-/*
-{ name: 'angular.js@1.0.0',
-  url: '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.0.0/angular.min.js',
-  versions:
-   { '1.1.3': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.3/angular.min.js',
-     '1.1.1': '//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.1/angular.min.js',
-     ... } }
- */
-```
 
 ## License
 
