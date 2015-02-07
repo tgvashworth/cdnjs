@@ -3,6 +3,7 @@
 var cdnjs = require ('../cdn.js');
 var should = require ('should');
 var _ = require ('lodash');
+var pkg = require ('../package.json');
 
 var libraries = [
   { name: 'knockout-bootstrap',
@@ -24,9 +25,25 @@ var libraries = [
 
 describe ('cdn.js', function () {
 
-  describe ('#apiUrl', function () {
-    it ('should be cdnjs.com\'s API', function () {
-      cdnjs.apiUrl.should.equal ('http://api.cdnjs.com/libraries');
+  describe ('#api.url', function () {
+    describe ('#api.url', function () {
+      it ('should be cdnjs.com\'s API', function () {
+        cdnjs.api.url.should.equal ('http://api.cdnjs.com/libraries');
+      });
+    });
+
+    describe ('#api.headers.User-Agent', function () {
+      it ('should contain the package name', function () {
+        cdnjs.api.headers['User-Agent'].should.containEql (pkg.name);
+      });
+
+      it ('should contain the package version', function () {
+        cdnjs.api.headers['User-Agent'].should.containEql (pkg.version);
+      });
+
+      it ('should contain the package\'s npmjs address', function () {
+        cdnjs.api.headers['User-Agent'].should.containEql ('npmjs.com/package/' + pkg.name);
+      });
     });
   });
 

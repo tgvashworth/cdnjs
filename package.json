@@ -1,13 +1,13 @@
 {
   "name": "cdnjs",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Search and URL retrieval from cdnjs",
   "main": "cdn.js",
   "bin": {
     "cdnjs": "bin/cli.js"
   },
   "scripts": {
-    "test": "jshint --exclude-path .gitignore . && mocha --recursive"
+    "test": "jshint --exclude-path .gitignore . && mocha -b --recursive"
   },
   "repository": {
     "type": "git",

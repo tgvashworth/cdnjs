@@ -4,12 +4,18 @@ var fs = require('fs');
 
 var request = require('request');
 var _ = require('lodash');
+var pkg = require ('./package.json');
 
 //TODO: use a UserAgent with request
 
 var cdnjs = {
 
-  apiUrl: 'http://api.cdnjs.com/libraries',
+  api: {
+    url: 'http://api.cdnjs.com/libraries',
+    headers: {
+      'User-Agent': pkg.name + '/' + pkg.version + ' (Node.js Module and CLI) (+http://www.npmjs.com/package/' + pkg.name + ')'
+    }
+  },
 
   /* 
    * Gets libraries from api.cdnjs.com
@@ -42,7 +48,8 @@ var cdnjs = {
   _getLibraries: function (url, callback) {
     var params = {
       url: url,
-      json: true
+      json: true,
+      headers: this.api.headers
     };
 
     request
@@ -60,7 +67,7 @@ var cdnjs = {
    * Returns an API url from a library name and optional fields.
    */
   _buildUrl: function (name, fields) {
-    var url = this.apiUrl;
+    var url = this.api.url;
     if (name || fields) {
       url += '?';
     }
@@ -145,8 +152,13 @@ var cdnjs = {
    * It handles the possible error cases.
    */
   _getUrl: function (url, callback) {
+    var params = {
+      url: url,
+      headers: this.api.headers
+    };
+
     request
-      .get ({ url: url }, function (err, res, body) {
+      .get (params, function (err, res, body) {
         if (!err) {
           var code = res.statusCode;
           if (code === 200) {
