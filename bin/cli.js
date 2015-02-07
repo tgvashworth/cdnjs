@@ -183,7 +183,7 @@ if (method === 'update') {
           else console.log (req.name + (version ? ' ' + version : '') + ' ' + url);
         } else {
           if (!program.quiet) console.log ('  No result found for library', colors.green (req.name), version ? ('with version ' + colors.green (req.version)) : '');
-          if (version !== req.version) {
+          if (version && version !== req.version) {
             if (!program.quiet) console.log ('  Latest available version:', colors.green (version));
           }
         }
