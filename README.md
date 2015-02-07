@@ -1,5 +1,7 @@
 # cdnjs
 
+Search and URL retrieval from cdnjs
+
 ![terminal](http://i.imgur.com/QJ0gnLT.gif)
 
 [![build status](https://secure.travis-ci.org/phuu/cdnjs.png)](http://travis-ci.org/phuu/cdnjs)
