@@ -3,14 +3,17 @@
 var fs = require('fs');
 
 var request = require('request');
-//TODO: use UserAgent
-//TODO: use cli-color
 var _ = require('lodash');
+
+//TODO: use a UserAgent with request
 
 var cdnjs = {
 
   apiUrl: 'http://api.cdnjs.com/libraries',
 
+  /* 
+   * Gets libraries from api.cdnjs.com
+   */
   libraries: function (name, fields, callback) {
     if ('function' === typeof name) {
       callback = name;
@@ -33,6 +36,9 @@ var cdnjs = {
     this._getLibraries (url, callback);
   },
 
+  /*
+   * An helper method that performs the actual request.
+   */
   _getLibraries: function (url, callback) {
     var params = {
       url: url,
@@ -50,6 +56,9 @@ var cdnjs = {
       }.bind (this));
   },
 
+  /*
+   * Returns an API url from a library name and optional fields.
+   */
   _buildUrl: function (name, fields) {
     var url = this.apiUrl;
     if (name || fields) {
@@ -67,6 +76,9 @@ var cdnjs = {
     return url;
   },
 
+  /*
+   * Searches among the results of an api call (the libraries).
+   */
   search: function (libraries, name, callback) {
     var results = {
       exact: null,
@@ -91,6 +103,9 @@ var cdnjs = {
     callback (null, results);
   },
 
+  /*
+   * Gets the url from the results of an API call (the libraries).
+   */
   url: function (libraries, name, version, callback) {
     if ('function' === typeof version) {
       callback = version;
@@ -125,6 +140,10 @@ var cdnjs = {
     }.bind (this));
   },
 
+  /*
+   * Helper method that performs the actual url request.
+   * It handles the possible error cases.
+   */
   _getUrl: function (url, callback) {
     request
       .get ({ url: url }, function (err, res, body) {
@@ -143,6 +162,10 @@ var cdnjs = {
       }.bind (this));
   },
 
+  /*
+   * Extracts the package name and version from a string.
+   * foobar@0.0.1 => { name: 'foobar', version: '0.0.1' }
+   */
   extractTerm: function (term) {
     var segments = term.split ('@');
     return {
