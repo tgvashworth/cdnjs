@@ -5,7 +5,7 @@
 var cdnjs = require('./cdn.js'),
     util = require('util');
 
-cdnjs.libraries('knockout', ['keywords'], function (err, libraries) {
+cdnjs.libraries('knockout', ['keywords'], function (err, libraries, total) {
   console.log (util.inspect(arguments, { depth: null, colors: true }));
 });
 

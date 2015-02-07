@@ -25,7 +25,7 @@ Install `cdnjs` globally:
 To be able to search for a library or get a url, you need to update your local library list:
 
 ```
-cdnjs update
+$ cdnjs update
  Updating local cache...
  1109 libraries found.
  Cache updated successfully.
@@ -111,18 +111,18 @@ assets
  ```
 All `libraries` queries are force-passed a `version` parameter, in case you don't pass one, since the `url ()` method needs it,
  
- - `callback (error, results, total)`: the callback method; `results` is an `Array` of `object` and total is the number of results, returned by the API.
+ - `callback (error, results, total)`: the callback method; `results` is an `Array` of `object` and `total` is the number of results, returned by the API.
 
 Example:
 
 ```
-cdnjs.libraries(function (err, libraries) {
-/* do stuff like store the results, url, search, ... */
+cdnjs.libraries(function (err, libraries, total) {
+  /* do stuff like store the results, url, search, ... */
 });
 
 
-cdnjs.libraries('knockout', ['keywords'], function (err, libraries) {
-/* do stuff like store the results, url, search, ... */
+cdnjs.libraries('knockout', ['keywords'], function (err, libraries, total) {
+  /* do stuff like store the results, url, search, ... */
 });
 ```
 
@@ -141,17 +141,17 @@ Example:
 
 ```
 cdnjs.search(libraries, 'knockout', function (err, results) {
-/* do stuff like console.log... */
+  /* do stuff like console.log... */
 });
 ```
 
-#### url (libraries, name, version, callback)
+#### #url (libraries, name, version, callback)
 
 Get the url for the specified library and version. If no exact match is found, the first result from the partial match is returned. Parameters:
 
   - `libraries` (`Array` of `object`): the results from a previous call to `libraries ()`,
   - `name` (`String`): the (partial) name of a library (the search term),
-  - `version` (`String`): the desired version of the library,
+  - `version` (`String`, optional): the desired version of the library,
   - `callback (error, result, version)`: the callback method; `result` is a `String` of the returned url, and version is the available version; if no library matching the search term is found, `result` will be `null`; if the desired version of a library is not available, `version` will be the latest one available.
 
 Example:
