@@ -1,13 +1,13 @@
 {
   "name": "cdnjs",
-  "version": "0.3.2",
+  "version": "0.4.1",
   "description": "Search and URL retrieval from cdnjs",
   "main": "cdn.js",
   "bin": {
     "cdnjs": "bin/cli.js"
   },
   "scripts": {
-    "test": "mocha --timeout 20000"
+    "test": "jshint --exclude-path .gitignore . && mocha -b --recursive"
   },
   "repository": {
     "type": "git",
@@ -24,15 +24,14 @@
   "license": "MIT",
   "gitHead": "ec51897347f590dc078c483ad47b3f68d546394b",
   "devDependencies": {
-    "should": "~1.2.1",
-    "mocha": "~1.8.1"
+    "jshint": "^2.6.0",
+    "mocha": "^2.1.0",
+    "should": "^4.6.3"
   },
   "dependencies": {
-    "colors": "~0.6.0-1",
-    "request": "~2.21.0",
-    "moment": "~2.0.0",
-    "lodash": "~1.3.1",
-    "cdnjs-transform": "^0.1",
-    "commander": "^2"
+    "colors": "^1.0.3",
+    "commander": "^2.6.0",
+    "lodash": "^3.0.1",
+    "request": "^2.51.0"
   }
 }

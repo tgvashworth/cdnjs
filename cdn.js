@@ -1,179 +1,191 @@
 'use strict';
 
+var fs = require('fs');
+
 var request = require('request');
-var moment = require('moment');
-var transform = require('cdnjs-transform');
+var _ = require('lodash');
+var pkg = require ('./package.json');
 
-// Search methods (return array)
-
-var searchBy = function (key, term, array) {
-  var matches = [];
-  array.some(function (item) {
-    if (item[key]) {
-      if ((''+item[key]).toLowerCase().indexOf(term) !== -1) {
-        matches.push(item);
-      }
-    }
-  });
-  return matches;
-};
-
-var searchByName = searchBy.bind(null, 'name');
-// Also possible:
-// var searchByFilename = searchBy.bind(null, 'filename');
-// var searchByDescription = searchBy.bind(null, 'description');
-
-// Find methods (returns object or false)
-
-var findBy = function (key, term, array) {
-  var match;
-  array.some(function (item) {
-    return item[key] && item[key] === term && (match = item) && true;
-  });
-  return match;
-};
-
-var findByName = findBy.bind(null, 'name');
-// Also possible:
-// var findByFilename = findBy.bind(null, 'filename');
-// var findByDescription = findBy.bind(null, 'description');
-
-var toggleExtension = function (name) {
-  var endsWithJS = /\.js$/;
-  if (endsWithJS.test(name)) {
-    name = name.replace(endsWithJS, '');
-  }
-  else {
-    name += '.js';
-  }
-  return name;
-};
-
-// The main cdnjs object
+//TODO: use a UserAgent with request
 
 var cdnjs = {
-  urls: {
-    packages: 'https://cdnjs.com/packages.json',
-    base: '//cdnjs.cloudflare.com/ajax/libs/'
+
+  api: {
+    url: 'http://api.cdnjs.com/libraries',
+    headers: {
+      'User-Agent': pkg.name + '/' + pkg.version + ' (Node.js Module and CLI) (+http://www.npmjs.com/package/' + pkg.name + ')'
+    }
   },
 
-  /**
-   * Build a cdnjs URL for the given package
+  /* 
+   * Gets libraries from api.cdnjs.com
    */
-  buildUrl: function (pkg) {
-    var base = this.urls.base;
-    return base + [pkg.name, pkg.version, pkg.filename || pkg.name].join('/');
+  libraries: function (name, fields, callback) {
+    if ('function' === typeof name) {
+      callback = name;
+      name = null;
+      fields = [];
+    } else if ('function' === typeof fields) {
+      callback = fields;
+      if ('object' === typeof name) {
+        fields = name;
+        name = null;
+      } else {
+        fields = [];
+      }
+    }
+
+    if (fields.indexOf ('version') === -1) {
+      fields.push ('version');
+    }
+    var url = this._buildUrl (name, fields);
+    this._getLibraries (url, callback);
   },
 
-  /**
-   * Build a usable package object with versions
+  /*
+   * An helper method that performs the actual request.
    */
-  buildPackage: function (pkg) {
-    return {
-      name: pkg.name,
-      url: this.buildUrl({
-        name: pkg.root,
-        version: pkg.version,
-        filename: pkg.files.minified
-      }),
-      versions: pkg.versions.reduce(function (memo, version) {
-        memo[version] = this.buildUrl({
-          name: pkg.root,
-          version: version,
-          filename: pkg.files.minified
-        });
-        return memo;
-      }.bind(this), {})
+  _getLibraries: function (url, callback) {
+    var params = {
+      url: url,
+      json: true,
+      headers: this.api.headers
     };
+
+    request
+      .get (params, function (err, res, body) {
+        var total, results;
+        if (!err) {
+          total = body.total;
+          results = _.sortBy (body.results, 'name');
+        }
+        callback (err, results, total);
+      }.bind (this));
   },
 
-  /**
-   * Extract package name and version from search term
+  /*
+   * Returns an API url from a library name and optional fields.
+   */
+  _buildUrl: function (name, fields) {
+    var url = this.api.url;
+    if (name || fields) {
+      url += '?';
+    }
+    if (name) {
+      url += 'search=' + name;
+    }
+    if (name && fields) {
+      url += '&';
+    }
+    if (fields) {
+      url += 'fields=' + fields.join (',');
+    }
+    return url;
+  },
+
+  /*
+   * Searches among the results of an api call (the libraries).
+   */
+  search: function (libraries, name, callback) {
+    var results = {
+      exact: null,
+      partials: [],
+      longestName: 0
+    };
+    libraries.forEach (function (lib) {
+      if (lib.name.match (new RegExp (name)) || lib.name === name) {
+
+        lib.latest = lib.latest.replace (/^http:/, '');
+        if (lib.name === name) {
+          results.exact = lib;
+        } else {
+          results.partials.push (lib);
+        }
+
+        if (lib.name.length > results.longestName) {
+          results.longestName = lib.name.length;
+        }
+      }
+    });
+    callback (null, results);
+  },
+
+  /*
+   * Gets the url from the results of an API call (the libraries).
+   */
+  url: function (libraries, name, version, callback) {
+    if ('function' === typeof version) {
+      callback = version;
+      version = null;
+    }
+    this.search (libraries, name, function (err, results) {
+      var library = null;
+      if (results.exact) {
+        library = results.exact;
+      } else if (results.partials.length){
+        library = results.partials[0];
+      }
+
+      if (library) {
+        var url = library.latest;
+        if (version && version !== library.version) {
+          var latest = library.version;
+          url = url.replace (new RegExp ('(//cdnjs.cloudflare.com/ajax/libs/.*/)' + latest + '(/.*)'), '$1' + version + '$2');
+          this._getUrl ('http:' + url, function (err, exists) {
+            if (!err && exists) {
+              callback (err, url, version);
+            } else {
+              callback (err, null, latest);
+            }
+          });
+        } else {
+          callback (null, url, null);
+        }
+      } else {
+        callback (null, null, null);
+      }
+    }.bind (this));
+  },
+
+  /*
+   * Helper method that performs the actual url request.
+   * It handles the possible error cases.
+   */
+  _getUrl: function (url, callback) {
+    var params = {
+      url: url,
+      headers: this.api.headers
+    };
+
+    request
+      .get (params, function (err, res, body) {
+        if (!err) {
+          var code = res.statusCode;
+          if (code === 200) {
+            callback (err, true);
+          } else if (code === 404) {
+            callback (err, false);
+          } else {
+            callback (new Error ('Unknown Server Error: ' + code), false);
+          }
+        } else {
+          callback (err, false);
+        }
+      }.bind (this));
+  },
+
+  /*
+   * Extracts the package name and version from a string.
+   * foobar@0.0.1 => { name: 'foobar', version: '0.0.1' }
    */
   extractTerm: function (term) {
-    var segments = term.split('@');
+    var segments = term.split ('@');
     return {
       name: segments[0],
       version: segments[1]
     };
-  },
-
-  /**
-   * Get the correct version for a given package
-   */
-  getVersion: function (version, pkg) {
-    if (!version) { return pkg; }
-    if (pkg.url.indexOf(version) !== -1) { return pkg; }
-    if (!pkg.versions[version]) { return pkg; }
-    pkg.url = pkg.versions[version];
-    pkg.name = pkg.name + '@' + version;
-    return pkg;
-  },
-
-  /**
-   * Cached list of packages
-   * Why is this not cached to a file? Becuase the global tool should always go
-   * looking properly, but a module using cdnjs (like an API) will keep it in
-   * memory so it needs recaching after 24 hours.
-   */
-  cache: null,
-
-  /**
-   * Grab the packages from the local cache, or cdnjs.
-   */
-  packages: function (cb) {
-    // If we've got the packages cached use them, but only if it's not expired.
-    if (this.cache && this.cache.packages) {
-      if (moment().isBefore(this.cache.expires)) {
-        return cb(null, this.cache.packages, true);
-      }
-    }
-    // Grab some JSON from the cdnjs list
-    request
-      .get({ url: this.urls.packages, json:true }, function (err, res, body) {
-        if (err) { return cb(err); }
-        // The wrong thing came back, gtfo
-        if (!(body && body.packages)) { return cb(null, []); }
-        var data = transform(body.packages);
-        // Cache the good stuff, and set and expiry time
-        this.cache = {
-          packages: data,
-          expires: moment().add('hours', 24)
-        };
-        // Transform the packages into a useful form and send on back
-        return cb(null, data);
-      }.bind(this));
-  },
-
-  /**
-   * Search the packages list for an identifier. Loosey-goosey.
-   */
-  search: function (term, cb) {
-    term = this.extractTerm(term);
-    this.packages(function (err, packages) {
-      if (err) { return cb(err); }
-      // Loosely search the names of the packages, then trasform them into a
-      // usable format.
-      var results = searchByName(term.name, packages).map(this.buildPackage.bind(this));
-      if (!results.length) { return cb(new Error("No matching packages found.")); }
-      return cb(null, results);
-    }.bind(this));
-  },
-
-  /**
-   * Get a URL for an exact identifier match.
-   */
-  url: function (term, cb) {
-    term = this.extractTerm(term);
-    this.packages(function (err, packages) {
-      if (err) { return cb(err); }
-      var pkg = findByName(term.name, packages);
-      if (!pkg) { pkg = findByName(toggleExtension(term.name), packages); }
-      if (!pkg) { return cb(new Error("No such package found.")); }
-      var version = this.getVersion(term.version, this.buildPackage(pkg));
-      return cb(null, version);
-    }.bind(this));
   }
+
 };
 
 // Export the API
