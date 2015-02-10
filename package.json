@@ -24,6 +24,8 @@
   "license": "MIT",
   "gitHead": "ec51897347f590dc078c483ad47b3f68d546394b",
   "devDependencies": {
+    "jshint": "^2.6.0",
+    "mocha": "^2.1.0",
     "should": "^4.6.3"
   },
   "dependencies": {

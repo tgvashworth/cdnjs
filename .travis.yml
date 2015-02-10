@@ -3,4 +3,4 @@ node_js:
   - "0.10"
   - "0.9"
 before_script:
-  - "npm install -g jshint"
+  - "npm install -g jshint mocha"
