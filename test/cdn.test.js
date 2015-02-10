@@ -25,9 +25,9 @@ var libraries = [
 
 describe ('cdn.js', function () {
 
-  describe ('#api.url', function () {
+  describe ('#api', function () {
     describe ('#api.url', function () {
-      it ('should be cdnjs.com\'s API', function () {
+      it ('should be cdnjs.com\'s API url (api.cdnjs.com)', function () {
         cdnjs.api.url.should.equal ('http://api.cdnjs.com/libraries');
       });
     });
